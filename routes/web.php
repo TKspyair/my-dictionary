@@ -1,19 +1,23 @@
 <?php
 
+
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\TagController;
+use App\Http\Controllers\WordController;
 
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "web" middleware group. Make something great!
-|
-*/
 
-Route::view('/', 'welcome');
+// ルートURL '/' にリクエストがきたときの処理
+Route::get('/', function () {
+    
+    // ユーザーが認証済みかどうかをチェック
+    if (Auth::check()) {
+        return redirect()->route('word-index');
+    } else {
+        return redirect()->route('login');
+    }
+});
+
 
 Route::view('dashboard', 'dashboard')
     ->middleware(['auth', 'verified'])
@@ -23,4 +27,12 @@ Route::view('profile', 'profile')
     ->middleware(['auth'])
     ->name('profile');
 
-require __DIR__.'/auth.php';
+
+//web.php内部でauth.phpを読み込むことで、web.phpに適用されているミドルウェアなどを適用させる
+require __DIR__ . '/auth.php';
+/*
+「require」 : PHPの命令。 機能 → (指定したファイルの有無) ? (ファイルを読み込み、PHPコードを実行) : (Fatal Errorを発生させ、プログラムを停止する)
+「__DIR__」 : PHPの「マジック定数」。 指定したファイルが保存されているディレクトリのフルパスに置き換わる(パスの記述の省略ができる)　
+　#例　/auth.php →　C:\xampp\htdocs\my-dictionary\routes(その後に指定したいファイルのパスを手動入力)
+ */
+
