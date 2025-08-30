@@ -2,24 +2,28 @@
 
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
-use App\Models\Word;
 use App\Models\Tag;
+use Livewire\Attributes\Validate;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\On; 
 use Livewire\Volt\Component;
 
+
 new #[Layout('layouts.words-app')] class extends Component 
 {
+    
     //タグテーブルのオブジェクト
     public $tags;
-    //新規作成タグ
-    public $tag_name = '';
-    // 編集中のタグIDを保持
+
+    public $tag_name;
+
+    // 編集中のタグID
     public ?int $editingTagId = null; //「?int」ヌル許容型 : 整数もしくはnull
+    
     // 編集用の入力フィールド
-    public string $editingTagName = '';
+    public string $editingTagName = '';          
 
-
+    
     //初期読み込み時に実行
     public function mount()
     {
@@ -36,11 +40,12 @@ new #[Layout('layouts.words-app')] class extends Component
     //タグ作成時の処理
     public function tagCreate(): void
     {
-        $validated = $this->validate([
-            'tag_name' => ['required', 'string', 'max:255'],
-        ]);
+        //$this->validate();
 
-        //入力値とuser_idををtagsテーブルに挿入
+        //  バリデーション成功後にAlpine.jsの変数を更新してフォームを閉じる
+        $this->dispatch('end-tag-create');
+
+        //入力値(tag_name)とuser_idををtagsテーブルに挿入
         Tag::create([
             'tag_name' => $this->tag_name,
             'user_id' => Auth::id(),
@@ -80,7 +85,6 @@ new #[Layout('layouts.words-app')] class extends Component
         if ($tag) {
             $tag->update(['tag_name' => $this->editingTagName]);
             $this->reset(['editingTagId', 'editingTagName']);
-            $this->loadTags();
             $this->dispatch('tagListUpdate');
         }
     }
@@ -98,13 +102,13 @@ new #[Layout('layouts.words-app')] class extends Component
         $tag = Auth::user()->tags()->find($tagId);
         if ($tag) {
             $tag->delete();
-            $this->loadTags();
+            $this->dispatch('tagListUpdate');
         }
     }
 
 }; ?>
 
-<div class="container-fluid" x-data="{ tagCreateMode: false , showTagModal: false}" x-on:open-tag-modal.window="showTagModal =true">
+<div class="container-fluid" x-data="{ tagCreateMode: false, showTagModal: false }" x-on:open-tag-modal.window="showTagModal =true">
 
     <!--モーダル部分-->
     <div x-bind:class="{ 'modal': true, 'd-block': showTagModal }" tabindex="-1">
@@ -114,7 +118,8 @@ new #[Layout('layouts.words-app')] class extends Component
                 <!--ヘッダー-->
                 <div class="modal-header d-flex align-items-center">
                     <!--戻るボタン-->
-                    <button type="button" class="btn  border-0 bg-transparent p-0 me-3" data-bs-dismiss="modal" x-on:click="showTagModal = false" aria-label="戻る">
+                    <button type="button" class="btn  border-0 bg-transparent p-0 me-3" data-bs-dismiss="modal"
+                        x-on:click="showTagModal = false" aria-label="戻る">
                         <i class="bi bi-arrow-left fs-4"></i>
                     </button>
 
@@ -135,14 +140,24 @@ new #[Layout('layouts.words-app')] class extends Component
                         </div>
 
                         <!--タグ作成モード-->
-                        <div x-show="tagCreateMode" x-bind:class="{'d-flex align-items-center': tagCreateMode }">
+                        <div x-show="tagCreateMode" x-bind:class="{ 'd-flex align-items-center': tagCreateMode }">
                             <!-- 作成キャンセルボタン -->
-                            <button type="button" class="btn" x-on:click="tagCreateMode = false; $wire.cancelCreate();">
+                            <span x-on:click="tagCreateMode = false; $wire.cancelCreate();">
                                 <i class="bi bi-x-lg"></i>
-                            </button>
+                            </span>
                             <!-- 入力フォーム -->
-                            <input type="text" name="tag_name" class="form-control" wire:model.live="tag_name"
-                                x-on:keydown.enter="tagCreateMode = false; $wire.tagCreate();" x-init="$el.focus()" placeholder="新しいタグを作成" required>
+                            <div class="flex-grow-1">
+                                <input type="text" name="tag_name"
+                                    class="form-control @error('tag_name') is-invalid @enderror"
+                                    wire:model.live="tag_name" wire:keydown.enter="tagCreate"
+                                    x-on:end-tag-create.window="tagCreateMode =false" x-init="$el.focus()"
+                                    placeholder="新しいタグを作成" required>
+                                @error('tag_name')
+                                    <div class="invalid-feedback">
+                                        {{ $message }}
+                                    </div>
+                                @enderror
+                            </div>
                         </div>
                     </div>
 
@@ -154,21 +169,23 @@ new #[Layout('layouts.words-app')] class extends Component
                                 @if ($this->editingTagId === $tag->id)
                                     <div class="d-flex justify-content-between align-items-center">
                                         <!--クリックで削除(deleteTag()を実行)-->
-                                        <button class="btn btn-link p-0" wire:click="deleteTag({{ $tag->id }})" wire:confirm="本当に削除しますか？">
-                                            <i class="bi bi-trash me-2"></i> 
-                                        </button>
+                                        <span class=" p-0" wire:click="deleteTag({{ $tag->id }})"
+                                            wire:confirm="本当に削除しますか？">
+                                            <i class="bi bi-trash me-2"></i>
+                                        </span>
                                         <!--入力フォーム(決定でデータ更新)-->
                                         <input type="text" class="form-control me-2" wire:model="editingTagName"
                                             wire:keydown.enter="tagUpdate" x-init="$el.focus()">
                                         <!--編集確定-->
-                                        <button type="button" class="btn" wire:click="tagUpdate">
+                                        <span wire:click="tagUpdate">
                                             <i class="bi bi-check2"></i>
-                                        </button>
-                                    </div>    
-                                <!--一覧モード表示-->
+                                        </span>
+                                    </div>
+                                    <!--一覧モード表示-->
                                 @else
                                     <!--クリックで編集モードに切り替え-->
-                                    <span class="d-flex align-items-center flex-grow-1" wire:click="switchEdit({{ $tag->id }})">
+                                    <span class="d-flex align-items-center flex-grow-1"
+                                        wire:click="switchEdit({{ $tag->id }})">
                                         <i class="mb-0 text-dark text-decoration-none"></i>{{ $tag->tag_name }}
                                     </span>
                                 @endif

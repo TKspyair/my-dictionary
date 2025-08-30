@@ -35,11 +35,6 @@ new #[Layout('layouts.words-app')] class extends Component
     <!--検索バー-->
     <input id="search_word" name="search_word" wire:model.live="search" x-on:focus="listOpen = true" type="text"
         class="form-control" placeholder="語句を検索..." autocomplete="off">
-    <!--
-    「wire: model="プロパティ"」 : フォームの入力値とLivewireコンポーネントのプロパティを同期させる。(この場合は$search)
-    「.debounce」: Livewireがサーバーへリクエストを送信するのを一時的に遅延させるためのモディファイア
-    「モディファイア（modifier）」: ディレクティブの動作をカスタマイズしたり、機能を拡張したりするために使用する特別なキーワード
-    -->
 
     <!-- 検索結果の表示リスト -->
     @if ($this->results->count() > 0)

@@ -9,36 +9,39 @@ use Livewire\Attributes\On; // #[On('wordsUpdated')]の使用
 
 new #[Layout('layouts.words-app')] class extends Component 
 {
-    public $words;
+    public $wordColl;
 
     //語句リストの初期読み込み
     public function mount()
     {
-        $this->loadWords();
+        $this->loadWordColl();
     }
 
     // 語句リストの更新
     #[On('wordsUpdated')]
-    public function loadWords()
+    public function loadWordColl()
     {
-        $this->words = Auth::user()->words()->orderBy('created_at', 'desc')->get();
+        $this->wordColl = Auth::user()->words()->orderBy('created_at', 'desc')->get();
     }
     
     //リスト内の語句をクリック時に実行
-    public function showWordDetail(int $id): void
+    public function showWordDetail(Word $word): void
     {
-        // 'showWordDetail'というイベントを発火させ、語句のIDを渡す(showコンポーネントへ)
-        $this->dispatch('showWordDetail', $id);
+        // クリックした語句のモデルインスタンスを渡す
+        $this->dispatch('showWordDetail', word: $word)
+        ->to('pages.words.show');
     }
 }; ?>
 
 <!--語句リスト-->
 <div>
     <ul class="list-group">
-        @foreach ($this->words as $word)
+        @foreach ($this->wordColl as $word)
             <li class="list-group-item d-flex justify-content-between align-items-center">
                 <!--語句のクリック時にshowWordDetailメソッドを実行し、詳細ページへ飛ぶ-->
-                <a class="mb-0 text-dark text-decoration-none"  wire:click="showWordDetail({{ $word->id }})">{{ $word->word_name }}</a> 
+                <a class="mb-0 text-dark text-decoration-none"  wire:click="showWordDetail({{ $word }})">
+                    {{ $word->word_name }}
+                </a> 
             </li>
         @endforeach
     </ul>

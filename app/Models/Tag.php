@@ -19,5 +19,6 @@ class Tag extends Model
     public function words()
     {
         return $this->belongsToMany(Word::class, 'word_tag', 'tag_id', 'word_id');
+        //$this->belongsToMany(関連づけるモデルクラス, '中間テーブル名', '関連付ける元のモデルの外部キー',関連付け先のモデルの外部キー )
     }
 }
