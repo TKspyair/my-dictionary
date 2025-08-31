@@ -9,12 +9,15 @@ use Livewire\Attributes\Computed; //算出プロパティ
 
 new #[Layout('layouts.words-app')] class extends Component 
 {
-    public string $search = ''; // 検索バーの入力値
+    // 検索バーの入力値
+    public string $search = ''; 
 
+    //検索した語句のコレクション
     #[Computed]
-    public function results(): Collection
+    public function words(): Collection
     {
-        if (strlen($this->search) === 0) {
+        //プロパティの初期化
+        if (!$this->search) {
             //空の配列を返す
             return new Collection();
         }
@@ -24,32 +27,35 @@ new #[Layout('layouts.words-app')] class extends Component
     }
 
     //リスト内の語句をクリック時に実行
-    public function showWordDetail(int $id): void
+    public function showWordDetail(Word $word): void
     {
-        // 'showWordDetail'というイベントを発火させ、語句のIDを渡す(showコンポーネントへ)
-        $this->dispatch('showWordDetail', $id);
+        $this->dispatch('openWordDetailModal', word: $word)
+        ->to('pages.words.detail');
     }
 }; ?>
 
-<div x-data="{ listOpen: false }" x-on:click.outside="listOpen = false" class="position-relative">
+<div x-data="{ showWordList: false }" x-on:click.outside="showWordList = false" class="position-relative">
     <!--検索バー-->
-    <input id="search_word" name="search_word" wire:model.live="search" x-on:focus="listOpen = true" type="text"
-        class="form-control" placeholder="語句を検索..." autocomplete="off">
+    <input  type="text" wire:model.live="search" x-on:focus="showWordList = true" 
+        class="form-control" autocomplete="off"  placeholder="語句を検索...">
 
     <!-- 検索結果の表示リスト -->
-    @if ($this->results->count() > 0)
-        <div x-show="listOpen" class="card position-absolute w-100 z-1">
+    @if ($this->search && $this->words->count() > 0)
+        <div x-show="showWordList" class="card position-absolute w-100 z-1">
             <ul class="list-group list-group-flush">
-                @foreach ($this->results as $result)
+                
+                @foreach ($this->words as $word)
                     <li class="list-group-item">
-                        <a wire:click="showWordDetail({{ $result->id }})" class="text-dark text-decoration-none">{{ $result->word_name }}</a>
+                        <a wire:click="showWordDetail({{ $word }})" class="text-dark text-decoration-none">
+                            {{ $word->word_name }}
+                        </a>
                     </li>
                 @endforeach
             </ul>
         </div>
     <!--検索結果がないが、文字を入力しているときに実行-->
-    @elseif($this->search)
-        <div x-show="listOpen" class="card position-absolute w-100 z-1">
+    @elseif($this->search && $this->words->count() === 0)
+        <div x-show="showWordList" class="card position-absolute w-100 z-1">
             <div class="card-body">
                 <p class="mb-0 text-muted">語句が見つかりません。</p>
             </div>

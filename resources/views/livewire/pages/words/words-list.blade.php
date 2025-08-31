@@ -28,8 +28,8 @@ new #[Layout('layouts.words-app')] class extends Component
     public function showWordDetail(Word $word): void
     {
         // クリックした語句のモデルインスタンスを渡す
-        $this->dispatch('showWordDetail', word: $word)
-        ->to('pages.words.show');
+        $this->dispatch('openWordDetailModal', word: $word)
+        ->to('pages.words.detail-and-edit');
     }
 }; ?>
 

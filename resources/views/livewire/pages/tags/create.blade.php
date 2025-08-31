@@ -118,10 +118,10 @@ new #[Layout('layouts.words-app')] class extends Component
                 <!--ヘッダー-->
                 <div class="modal-header d-flex align-items-center">
                     <!--戻るボタン-->
-                    <button type="button" class="btn  border-0 bg-transparent p-0 me-3" data-bs-dismiss="modal"
-                        x-on:click="showTagModal = false" aria-label="戻る">
+                    <!--戻るボタン-->
+                    <span data-bs-dismiss="modal" x-on:click="showTagModal = false">
                         <i class="bi bi-arrow-left fs-4"></i>
-                    </button>
+                    </span>
 
                     <h5 class="modal-title mb-0">タグの編集</h5>
                 </div>
@@ -140,24 +140,17 @@ new #[Layout('layouts.words-app')] class extends Component
                         </div>
 
                         <!--タグ作成モード-->
-                        <div x-show="tagCreateMode" x-bind:class="{ 'd-flex align-items-center': tagCreateMode }">
+                        <div x-show="tagCreateMode" class="align-items-center input-group mb-3">
                             <!-- 作成キャンセルボタン -->
-                            <span x-on:click="tagCreateMode = false; $wire.cancelCreate();">
+                            <span x-on:click="tagCreateMode = false; $wire.cancelCreate();" class="me-2">
                                 <i class="bi bi-x-lg"></i>
                             </span>
                             <!-- 入力フォーム -->
-                            <div class="flex-grow-1">
-                                <input type="text" name="tag_name"
-                                    class="form-control @error('tag_name') is-invalid @enderror"
-                                    wire:model.live="tag_name" wire:keydown.enter="tagCreate"
-                                    x-on:end-tag-create.window="tagCreateMode =false" x-init="$el.focus()"
-                                    placeholder="新しいタグを作成" required>
-                                @error('tag_name')
-                                    <div class="invalid-feedback">
-                                        {{ $message }}
-                                    </div>
-                                @enderror
-                            </div>
+                            <input type="text" name="tag_name"
+                                class="form-control"
+                                wire:model.live="tag_name" wire:keydown.enter="tagCreate"
+                                x-on:end-tag-create.window="tagCreateMode =false" x-init="$el.focus()"
+                                placeholder="新しいタグを作成" required>
                         </div>
                     </div>
 
@@ -167,7 +160,7 @@ new #[Layout('layouts.words-app')] class extends Component
                             <li class="list-group-item">
                                 <!--編集モード表示-->
                                 @if ($this->editingTagId === $tag->id)
-                                    <div class="d-flex justify-content-between align-items-center">
+                                    <div class="align-items-center input-group mb-3">
                                         <!--クリックで削除(deleteTag()を実行)-->
                                         <span class=" p-0" wire:click="deleteTag({{ $tag->id }})"
                                             wire:confirm="本当に削除しますか？">

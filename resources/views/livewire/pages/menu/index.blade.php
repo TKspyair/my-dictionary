@@ -20,16 +20,16 @@ new #[Layout('layouts.words-app')] class extends Component
         </div>
         
         <!-- ボディ -->
-        <div class="offcanvas-body p-0 m-4">
+        <div class="offcanvas-body">
             
             <!--タグメニュー-->
-            <div class="d-flex justify-content-between align-text-center">
+            <div class="d-flex justify-content-between align-text-center m-1">
                 <h6>タグ</h6>
                 <span x-on:click="$dispatch('open-tag-modal')">設定</span>
             </div>
             
             <!--タグ一覧-->
-            <div>
+            <div class="m-0 p-0">
                 @livewire('pages.tags.index')
             </div>
         </div>

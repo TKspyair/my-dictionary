@@ -1,121 +1,95 @@
 <?php
 
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Collection; 
+use Illuminate\Support\Collection;
 use App\Models\User;
 use App\Models\Word;
 use App\Models\Tag;
-use Livewire\Attributes\On; 
+use Livewire\Attributes\On;
 use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
 
 new #[Layout('layouts.words-app')] class extends Component 
 {
-    public string $word_name = '';
-    public string $description = '';
-    public array $checkedTagIds = [];
-    public $checkedTags;
-
-    public function mount()
-    {
-        //コレクション型として初期化　※プロパティ定義時コレクション型の定義ができないため。
-        $this->checkedTags = collect();
-    }
+    public string $wordName = '';
+    public string $wordDescription = '';
+    public $checkedTags = null;
 
     //tags.check-listから引数を渡される
-    #[On('show-checked-tags')]
-    public function loadCheckTags($payload)
+    #[On('return-checked-tag-ids')]
+    public function loadCheckedTags(array $checkedTagIds)
     {
-        //受け取ったペイロードから、必要なデータを抽出
-        $tagsArray = $payload['tags'];
-        $this->checkedTagIds = $payload['checkedTagIds'];
-        
-        // 受け取った配列をLaravelのCollectionに変換する
-        $tagsCollection = collect($tagsArray);
-        
-        $this->checkedTags = $tagsCollection->whereIn('id', $this->checkedTagIds); 
+        //引数のタグidをもつタグコレクションを取得
+        $this->checkedTags = Tag::whereIn('id', $checkedTagIds)->get();
     }
 
     //フォーム送信時の処理
-    public function wordCreate(): void
+    public function createWord(): void
     {
-        $validated = $this->validate([
-            'word_name' => ['required', 'string', 'max:255'],
-            'description' => ['required', 'string'],
-        ]);
-
         //Wordモデルに新しいレコードを挿入し、インスタンス化
         $word = Word::create([
-            'word_name' => $this->word_name,
-            'description' => $this->description,
+            'word_name' => $this->wordName,
+            'description' => $this->wordDescription,
             'user_id' => Auth::id(),
         ]);
-        
+
         //attouch()によりtag_idとword_idが自動的に結び付けられ、中間テーブルに挿入される
-        $word->tags()->attach($this->checkedTagIds);
+        $word->tags()->attach($this->checkedTags);
         // tags() : Wordモデルのクラスメソッド。
-        /*attach() : 
+        /*attach() :
         中間テーブルへのレコード挿入: 中間テーブルに、関連付けに必要な外部キーのペア（例：word_idとtag_id）を自動的に挿入
         IDの自動取得: $word->tags()->attach(...)のように呼び出された際に、呼び出し元のモデル（この場合は $word）のIDを自動的に取得
         */
 
-        $this->reset(['word_name', 'description']);
+        $this->reset(['wordName', 'wordDescription']);
 
         $this->dispatch('wordsUpdated');
     }
 }; ?>
 
-<div class="container-fluid" x-data="{ showModal: false }" x-on:open-word-create-modal.window="showModal = true">
+<div class="container-fluid" x-data="{ showCreateWordModal: false }" 
+    x-on:open-create-word-modal.window="showCreateWordModal = true">
 
     <!-- モーダル本体 -->
-    <div x-bind:class="{ 'modal': true, 'd-block': showModal }" tabindex="-1">
+    <div x-bind:class="{ 'modal': true, 'd-block': showCreateWordModal }" tabindex="-1">
         <div class="modal-dialog modal-fullscreen">
             <div class="modal-content">
-                <form wire:submit.prevent="wordCreate" x-on:submit="showModal = false">
+                <form wire:submit.prevent="createWord" x-on:submit="showCreateWordModal = false">
                     <!--「.prevent」：ブラウザのデフォルトのフォーム送信を無効化し、ページのリロードをなくす-->
-
-                    <!--モーダルヘッダー-->
-                    <div class="modal-header">
-                        <h5 class="modal-title">新しい語句を追加</h5>
-
-                        <!--閉じるボタン-->
-                        <button type="button" class="btn-close"
-                            x-on:click="showModal = false"aria-label="Close"></button>
-                    </div>
 
                     <!-- モーダルボディ -->
                     <div class="modal-body">
 
-                        <!--語句名フィールド-->
-                        <div class="mb-3">
-                            <label for="word_name" class="form-label">語句</label>
-                            <input id="word_name" name="word_name" type="text" class="form-control"
-                                wire:model="word_name" required>
-                            
+                        <!--閉じるボタン-->
+                        <div class="d-flex justify-content-end mb-3">
+                            <button type="button" class="btn-close" x-on:click="showCreateWordModal = false"></button>
                         </div>
 
-                        <!--語句説明フィールド-->
-                        <div class="mb-3">
-                            <label for="description" class="form-label">説明</label>
-                            <textarea id="description" name="description" class="form-control" wire:model="description" rows="15" required></textarea>
-                            
-                        </div>
-
-                        <!--タグ付け-->
+                        <!-- 語句フィールド -->
                         <div>
-                            <!-- タグチェックリストモーダル -->
-                            <div>
-                                <span x-on:click="$dispatch('open-tag-check-list')">
-                                    タグ選択
-                                </span>
-                            </div>
+                            <input type="text" class="form-control border-0 fs-5 fw-bold"
+                                placeholder="語句" wire:model="wordName" required>
+                        </div>
 
-                            <!-- 選択したタグを表示 -->
+                        <hr class="m-0 p-0">
+
+                        <!-- 説明フィールド -->
+                        <div>
+                            <textarea  wire:model="wordDescription"
+                                class="form-control border-0" rows="15" placeholder="説明" required></textarea>
+                        </div>
+
+                        <!-- タグ選択 -->
+                        <div>
+                            <span x-on:click="$dispatch('open-tag-check-list')">
+                                タグ選択
+                            </span>
+
                             @if ($this->checkedTags)
                                 <div class="d-flex">
                                     @foreach ($this->checkedTags as $checkedTag)
-                                        <span class="me-2">
-                                            {{ $checkedTag['tag_name'] }}
+                                        <span class="badge bg-secondary me-1">
+                                            {{ $checkedTag->tag_name }}
                                         </span>
                                     @endforeach
                                 </div>

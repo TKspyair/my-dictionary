@@ -8,11 +8,11 @@ use Illuminate\Support\Facades\Log;
 
 new #[Layout('layouts.words-app')] class extends Component 
 {
-    //タグテーブルのコレクション
-    public $tags;
+    //ユーザーのもつ全てのタグのコレクション
+    public $tags = null;
 
     //チェックしたタグのid
-    public array $checkedTagIds = [];
+    public $checkedTagIds = [];
 
     //初期読み込み時に実行
     public function mount()
@@ -27,33 +27,37 @@ new #[Layout('layouts.words-app')] class extends Component
         $this->tags = Auth::user()->tags()->orderBy('created_at', 'desc')->get();
     }
 
-    //updated()は受け取りたいプロパティ名をアッパーキャメルケースにして付けることで自動で実行される
+    //words.detail-and-editより
+    #[On('edit-checked-word-tag-ids')]
+    public function editCheckedTags(array $checkedwordTagIds)
+    {
+        //受け取ったidを格納
+        $this->checkedTagIds = $checkedwordTagIds;
+    }
+
+    //$checkedTagIdsの更新時に実行 配列で他に渡す
     public function updatedCheckedTagIds()
     {
-        $this->dispatch('show-checked-tags', [
-            'tags' => $this->tags,
-            'checkedTagIds' => $this->checkedTagIds
-            ])->to('pages.words.create');
+        $this->dispatch('return-checked-tag-ids', checkedTagIds: $this->checkedTagIds);
     }
 };
 ?>
 
-<div x-data="{ showCheckList :false }" x-on:open-tag-check-list.window="showCheckList = true">
+<div x-data="{ showCheckList: false }" x-on:open-tag-check-list.window="showCheckList = true">
     <div x-bind:class="{ 'modal': true, 'd-block': showCheckList }" tabindex="-1">
         <div class="modal-dialog modal-fullscreen">
             <div class="modal-content">
-                <!--ヘッダー-->
+                <!-- ヘッダー -->
                 <div class="modal-header d-flex align-items-center">
                     <!--戻るボタン-->
-                    <button type="button" class="btn  border-0 bg-transparent p-0 me-3" data-bs-dismiss="modal"
-                        x-on:click="showCheckList = false">
+                    <span x-on:click="showCheckList = false" data-bs-dismiss="modal" class="p-0 me-3">
                         <i class="bi bi-arrow-left fs-4"></i>
-                    </button>
+                    </span>
 
                     <h5 class="modal-title mb-0">タグ</h5>
                 </div>
 
-                <!-- モーダルボディ -->
+                <!-- ボディ -->
                 <div class="modal-body">
 
                     <!-- チェックリスト -->
@@ -61,8 +65,9 @@ new #[Layout('layouts.words-app')] class extends Component
                         @foreach ($this->tags as $tag)
                             <div class="form-check">
                                 <!-- value属性でチェック時にチェックしたタグのIDをwire:modelに渡す -->
-                                <input class="form-check-input" type="checkbox" name="checkedTagIds[]" value="{{ $tag->id }}" id="{{ $tag->id }}" 
-                                wire:model.live="checkedTagIds">
+                                <input class="form-check-input" type="checkbox" name="checkedTagIds[]"
+                                    value="{{ $tag->id }}" id="{{ $tag->id }}"
+                                    wire:model.live="checkedTagIds">
                                 <label class="form-check-label" for="{{ $tag->id }}">
                                     {{ $tag->tag_name }}
                                 </label>

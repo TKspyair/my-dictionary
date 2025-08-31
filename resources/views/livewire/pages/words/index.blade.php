@@ -9,17 +9,17 @@ new #[Layout('layouts.words-app')] class extends Component {};
 <div class="container-lg">
     
     <!-- ヘッダー -->
-    <div class="m-4 d-flex">
+    <div class="d-flex mx-2 my-4 p-0">
 
         <!-- メニューボタン -->
-        <div class="justify-content-start">
-            <button class="btn btn-primary" data-bs-toggle="offcanvas" data-bs-target="#menu-offcanvas"> <!-- data-bs-targetで動作させたい要素のidを指定-->
-                <i class="bi bi-list"></i>
-            </button>
+        <div class="justify-content-start p-0">
+            <span data-bs-toggle="offcanvas" data-bs-target="#menu-offcanvas"> <!-- data-bs-targetで動作させたい要素のidを指定-->
+                <i class="bi bi-list fs-2"></i>
+            </span>
         </div>
     
         <!--検索バー-->
-        <div class="flex-grow-1 mx-3">
+        <div class="flex-grow-1 ms-3 me-4 p-0 ">
             @livewire('pages.words.search-word')
         </div>
     </div>
@@ -33,7 +33,8 @@ new #[Layout('layouts.words-app')] class extends Component {};
 
         <!--語句登録ボタン-->
         <div>
-            <button x-on:click="$dispatch('open-word-create-modal')" class="fab-button btn btn-primary rounded-circle shadow-lg position-fixed bottom-0 end-0 m-4">
+            <button x-on:click="$dispatch('open-create-word-modal')" 
+                class="fab-button btn btn-primary rounded-circle shadow-lg position-fixed bottom-0 end-0 m-4">
                 <i class="fas fa-plus"></i><!--「＋」マークの表示-->
             </button>
         </div>
@@ -45,6 +46,6 @@ new #[Layout('layouts.words-app')] class extends Component {};
     @livewire('pages.words.create')
     <!-- メニュー -->
     @livewire('pages.menu.index')
-    <!-- 語句詳細 -->
-    @livewire('pages.words.show')
+    <!-- 語句詳細・編集 -->
+    @livewire('pages.words.detail-and-edit')
 </div>
