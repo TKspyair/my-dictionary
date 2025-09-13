@@ -36,7 +36,7 @@ new #[Layout('layouts.words-app')] class extends Component
 };
 ?>
 
-<div x-data="{ showCheckList :false }" x-on:open-tag-check-list.window="showCheckList = true">
+<div x-data="{ showCheckList :false }" x-on:open-tags-check-list.window="showCheckList = true">
     <div x-bind:class="{ 'modal': true, 'd-block': showCheckList }" tabindex="-1">
         <div class="modal-dialog modal-fullscreen">
             <div class="modal-content">

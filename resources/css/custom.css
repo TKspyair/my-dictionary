@@ -1,0 +1,10 @@
+.form-control{
+    padding: 0 !important;
+    border: none !important;
+    background-color: transparent !important;
+    color: inherit !important;
+    box-shadow: none !important;
+    transition: none !important;
+}
+/*  !important : CSSを強制適用する
+*/

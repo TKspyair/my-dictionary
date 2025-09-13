@@ -5,6 +5,7 @@ use Illuminate\Support\Collection;
 use App\Models\User;
 use App\Models\Word;
 use App\Models\Tag;
+use Illuminate\Validation\Rule; 
 use Livewire\Attributes\On;
 use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
@@ -12,24 +13,59 @@ use Livewire\Volt\Component;
 new #[Layout('layouts.words-app')] class extends Component 
 {
     public string $wordName = '';
+
     public string $wordDescription = '';
+
     public $checkedTags = null;
+
+    // バリデーションルール
+    public function rules()
+    {
+        return [
+            'wordName' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('words', 'word_name'),
+            ],
+            'wordDescription' => [
+                'required',
+                'string',
+            ],
+        ];
+    }
+
+    // エラーメッセージ
+    public function messages()
+    {
+        return [
+            'wordName.required' => '語句は必須です。',
+            'wordName.string' => '語句は文字列で入力してください。',
+            'wordName.max' => '語句は255文字以内で入力してください。',
+            'wordName.unique' => 'この語句は既に使用されています。',
+            'wordDescription.required' => '説明は必須です。',
+            'wordDescription.string' => '説明は文字列で入力してください。',
+        ];
+    }
 
     //tags.check-listから引数を渡される
     #[On('return-checked-tag-ids')]
     public function loadCheckedTags(array $checkedTagIds)
     {
         //引数のタグidをもつタグコレクションを取得
-        $this->checkedTags = Tag::whereIn('id', $checkedTagIds)->get();
+        $this->checkedTag = Tag::whereIn('id', $checkedTagIds)->get();
     }
 
     //フォーム送信時の処理
     public function createWord(): void
     {
-        //Wordモデルに新しいレコードを挿入し、インスタンス化
+        $validated = $this->validate();
+        
+        $this->dispatch('close-all-modal');
+
         $word = Word::create([
-            'word_name' => $this->wordName,
-            'description' => $this->wordDescription,
+            'word_name' => $validated['wordName'],
+            'description' => $validated['wordDescription'],
             'user_id' => Auth::id(),
         ]);
 
@@ -41,47 +77,56 @@ new #[Layout('layouts.words-app')] class extends Component
         IDの自動取得: $word->tags()->attach(...)のように呼び出された際に、呼び出し元のモデル（この場合は $word）のIDを自動的に取得
         */
 
-        $this->reset(['wordName', 'wordDescription']);
+        $this->clearForm();
 
-        $this->dispatch('wordsUpdated');
+        $this->dispatch('update-words');
+    }
+
+    // フォームをクリア
+    public function clearForm()
+    {
+        $this->resetValidation(); 
+        $this->reset(['wordName', 'wordDescription']);
+        //resetValidation() : livewireのメソッド、バリデーションのエラーメッセージをクリアする
+        //変数とプロパティの違い：プロパティはクラスやオブジェクトに属する変数、変数はクラスやオブジェクトに属さない、データを保持するもの
+        //関数とメソッドの違い：メソッドはクラスやオブジェクトに属する、関数はクラスやオブジェクトに属さない、処理を行うもの
+        //reset()はプロパティに対して動作するメソッドなので、'プロパティ名'を引数に渡す
     }
 }; ?>
 
-<div class="container-fluid" x-data="{ showCreateWordModal: false }" 
-    x-on:open-create-word-modal.window="showCreateWordModal = true">
+
+<div class="container-fluid" x-data="{ showModal: false }" 
+    x-on:open-words-create-modal.window="showModal = true"
+    x-on:close-all-modal.window="showModal = false">
 
     <!-- モーダル本体 -->
-    <div x-bind:class="{ 'modal': true, 'd-block': showCreateWordModal }" tabindex="-1">
+    <div x-bind:class="{ 'modal': true, 'd-block': showModal }" tabindex="-1">
         <div class="modal-dialog modal-fullscreen">
             <div class="modal-content">
-                <form wire:submit.prevent="createWord" x-on:submit="showCreateWordModal = false">
+                <form wire:submit.prevent="createWord">
                     <!--「.prevent」：ブラウザのデフォルトのフォーム送信を無効化し、ページのリロードをなくす-->
 
-                    <!-- モーダルボディ -->
+                    <!-- ヘッダー -->
+                    <div class="modal-header d-flex align-items-center">
+
+                        <!--戻るボタン-->
+                        <x-back-button wire:click="clearForm"/>
+
+                        <h5 class="modal-title mb-0">新規作成</h5>
+                    </div>
+
+                    <!-- ボディ -->
                     <div class="modal-body">
+                        
+                        <!-- 語句名フィールド -->
+                        <x-form-input wire:model="wordName" class="fs-5 fw-bold" placeholder="語句"/>
 
-                        <!--閉じるボタン-->
-                        <div class="d-flex justify-content-end mb-3">
-                            <button type="button" class="btn-close" x-on:click="showCreateWordModal = false"></button>
-                        </div>
-
-                        <!-- 語句フィールド -->
-                        <div>
-                            <input type="text" class="form-control border-0 fs-5 fw-bold"
-                                placeholder="語句" wire:model="wordName" required>
-                        </div>
-
-                        <hr class="m-0 p-0">
-
-                        <!-- 説明フィールド -->
-                        <div>
-                            <textarea  wire:model="wordDescription"
-                                class="form-control border-0" rows="15" placeholder="説明" required></textarea>
-                        </div>
+                        <!-- 語句説明フィールド -->
+                        <x-form-textarea wire:model="wordDescription" placeholder="説明"/>
 
                         <!-- タグ選択 -->
                         <div>
-                            <span x-on:click="$dispatch('open-tag-check-list')">
+                            <span x-on:click="$dispatch('open-tags-check-list')">
                                 タグ選択
                             </span>
 
@@ -98,7 +143,7 @@ new #[Layout('layouts.words-app')] class extends Component
                     </div>
 
                     <!--保存ボタン-->
-                    <div class="modal-footer d-flex justify-content-center">
+                    <div class="d-flex justify-content-center">
                         <button type="submit" class="btn btn-primary">保存</button>
                     </div>
                 </form>

@@ -18,7 +18,7 @@ new #[Layout('layouts.words-app')] class extends Component
     }
 
     // 語句リストの更新
-    #[On('wordsUpdated')]
+    #[On('update-words')]
     public function loadWordColl()
     {
         $this->wordColl = Auth::user()->words()->orderBy('created_at', 'desc')->get();

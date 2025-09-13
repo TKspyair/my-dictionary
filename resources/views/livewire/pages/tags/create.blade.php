@@ -1,29 +1,64 @@
 <?php
 
-use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use App\Models\Tag;
-use Livewire\Attributes\Validate;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule; 
 use Livewire\Attributes\Layout;
-use Livewire\Attributes\On; 
+use Livewire\Attributes\On;
+use Livewire\Attributes\Computed;
 use Livewire\Volt\Component;
-
 
 new #[Layout('layouts.words-app')] class extends Component 
 {
-    
-    //タグテーブルのオブジェクト
-    public $tags;
+    //Tagテーブルのコレクション
+    public $tagColl;
 
-    public $tag_name;
+    //新規作成中のTagインスタンスのプロパティ
+    public $tagName;
 
-    // 編集中のタグID
-    public ?int $editingTagId = null; //「?int」ヌル許容型 : 整数もしくはnull
-    
-    // 編集用の入力フィールド
-    public string $editingTagName = '';          
+    // 編集中のTagインスタンスのプロパティ
+    public int $editingTagId = 0;
+    public string $editingTagName = '';
 
-    
+    // バリデーションルール
+    public function rules()
+    {
+        return [
+            'tagName' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('tags', 'tag_name'), // 新規作成時のuniqueルール
+            ],
+            'editingTagName' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('tags', 'tag_name')->ignore($this->editingTagId),
+                // ignore(int id) : 引数に指定されたidをユニーク制約の対象から外す
+            ],
+        ];
+    }
+
+    //　エラーメッセージ
+    public function messages()
+    {
+        return [
+            // tagNameプロパティ
+            'tagName.required' => 'タグ名は必須です。',
+            'tagName.string' => 'タグ名は文字列で入力してください。', 
+            'tagName.max' => 'タグ名は255文字以内で入力してください。', 
+            'tagName.unique' => 'このタグ名は既に使用されています。',
+
+            // editingTagNameプロパティ
+            'editingTagName.required' => 'タグ名は必須です。',
+            'editingTagName.string' => 'タグ名は文字列で入力してください。', 
+            'editingTagName.max' => 'タグ名は255文字以内で入力してください。', 
+            'editingTagName.unique' => 'このタグ名は既に使用されています。',
+        ];
+    }
+
     //初期読み込み時に実行
     public function mount()
     {
@@ -31,160 +66,168 @@ new #[Layout('layouts.words-app')] class extends Component
     }
 
     //　タグ一覧の更新
-    #[On('tagListUpdate')]
+    #[On('update-tag-list')]
     public function loadTags(): void
     {
-        $this->tags = Auth::user()->tags()->orderBy('created_at', 'desc')->get();
+        $this->tagColl = Auth::user()->tags()->orderBy('created_at', 'desc')->get();
     }
 
     //タグ作成時の処理
-    public function tagCreate(): void
+    public function createTag(): void
     {
-        //$this->validate();
+        $validated = $this->validateOnly('tagName');
 
-        //  バリデーション成功後にAlpine.jsの変数を更新してフォームを閉じる
-        $this->dispatch('end-tag-create');
+        // バリデーション成功後にタグ作成モードを終了
+        $this->dispatch('end-tag-create-mode');
 
-        //入力値(tag_name)とuser_idををtagsテーブルに挿入
         Tag::create([
-            'tag_name' => $this->tag_name,
+            'tag_name' => $validated['tagName'],
             'user_id' => Auth::id(),
         ]);
 
-        // 入力値をリセット
-        $this->reset('tag_name');
+        //フォームクリア
+        $this->clearCreateForm();
 
         //タグ一覧の更新
-        $this->dispatch('tagListUpdate');
+        $this->dispatch('update-tag-list');
     }
 
-    // タグ作成のキャンセル
-    public function cancelCreate(): void
+    // 登録フォームをクリア
+    public function clearCreateForm()
     {
-        $this->reset(['tag_name']);
+        $this->resetValidation();
+        $this->reset('tagName');
     }
 
-    
     //編集モードへ切り替え
     public function switchEdit(int $tagId): void
     {
-        $this->editingTagId = $tagId;
-        $tag = $this->tags->find($tagId);
-        $this->editingTagName = $tag->tag_name;
+        //idからTagインスタンスを取得
+        $editingTag = $this->tagColl->find($tagId);
+
+        if ($editingTag) {
+            $this->editingTagId = $editingTag->id;
+            $this->editingTagName = $editingTag->tag_name;
+        }
     }
 
     // 編集内容の保存
-    public function tagUpdate(): void
+    public function updateTag(): void
     {
-        $validated = $this->validate([
-            'editingTagName' => ['required', 'string', 'max:255'],
-        ]);
+        if ($this->editingTagId) {
+            $validated = $this->validateOnly('editingTagName');
 
-        $tag = Auth::user()->tags()->find($this->editingTagId);
-        //「find()」 : 主キー（通常はid）に基づいて単一のレコードを取得する ※get() : 条件に合致する全てのレコードを取得
-        if ($tag) {
-            $tag->update(['tag_name' => $this->editingTagName]);
-            $this->reset(['editingTagId', 'editingTagName']);
-            $this->dispatch('tagListUpdate');
+            // find()で見つけたTagインスタンスに対してupdate()を実行
+            Tag::find($this->editingTagId)->update([
+                'tag_name' => $validated['editingTagName'],
+            ]);
+            /** update()を使用する理由
+             * save() : モデル(インスタンス)の現在の状態をデータベースに保存　例 [インスタンス]->save();
+             * update() : 引数で渡された配列の内容でデータベースを更新する　例 [インスタンス]->update(['カラム名'　=> 値])
+             */
+            $this->clearEditForm();
+            $this->dispatch('update-tag-list');
         }
     }
 
-    // 編集のキャンセル
-    public function cancelEdit(): void
+    // 編集中のタグをクリア
+    public function clearEditForm()
     {
-        $this->reset(['editingTagId', 'editingTagName']);
+        $this->resetValidation();
+        $this->reset('editingTagId', 'editingTagName');
     }
 
     // 削除処理の実行
-    #[On('deleteTag')]
     public function deleteTag(int $tagId): void
     {
-        $tag = Auth::user()->tags()->find($tagId);
-        if ($tag) {
-            $tag->delete();
-            $this->dispatch('tagListUpdate');
-        }
-    }
+        // ログイン中のユーザーのタグの中から、IDが一致するものを削除
+        Auth::user()->tags()->where('id', $tagId)->delete();
 
+        $this->dispatch('update-tag-list');
+    }
 }; ?>
 
-<div class="container-fluid" x-data="{ tagCreateMode: false, showTagModal: false }" x-on:open-tag-modal.window="showTagModal =true">
+<div class="container-fluid" x-data="{ tagCreateMode: false, showModal: false }" 
+    x-on:open-tags-create-modal.window="showModal = true"
+    x-on:close-all-modal.window="showModal= false" 
+    x-on:end-tag-create-mode="tagCreateMode = false">
 
     <!--モーダル部分-->
-    <div x-bind:class="{ 'modal': true, 'd-block': showTagModal }" tabindex="-1">
+    <div x-bind:class="{ 'modal': true, 'd-block': showModal }" tabindex="-1">
         <div class="modal-dialog modal-fullscreen">
             <div class="modal-content">
 
                 <!--ヘッダー-->
                 <div class="modal-header d-flex align-items-center">
+                    
                     <!--戻るボタン-->
-                    <!--戻るボタン-->
-                    <span data-bs-dismiss="modal" x-on:click="showTagModal = false">
-                        <i class="bi bi-arrow-left fs-4"></i>
-                    </span>
+                    <x-back-button/>
 
                     <h5 class="modal-title mb-0">タグの編集</h5>
                 </div>
 
                 <!-- ボディ -->
                 <div class="modal-body">
+                    <form>
 
-                    <!--タグ新規作成-->
+                    {{-- タグ作成 --}}
                     <div>
-                        <!--通常モード-->
+                        {{-- 通常モード --}}
                         <div x-show="!tagCreateMode" x-on:click="tagCreateMode = true">
-                            <!-- ＋マークと文字 -->
-                            <span class="d-flex align-items-center flex-grow-1">
+                            <span>
                                 <i class="bi bi-plus-lg me-2"></i>新しいタグを作成
                             </span>
                         </div>
 
-                        <!--タグ作成モード-->
-                        <div x-show="tagCreateMode" class="align-items-center input-group mb-3">
-                            <!-- 作成キャンセルボタン -->
-                            <span x-on:click="tagCreateMode = false; $wire.cancelCreate();" class="me-2">
+                        {{-- 作成モード --}}
+                        <div x-show="tagCreateMode" x-bind:class="{'d-flex align-items-center has-validation' : tagCreateMode}">
+
+                            {{-- 作成キャンセルボタン --}}
+                            <span x-on:click="tagCreateMode = false" wire:click="clearCreateForm" class="me-3">
                                 <i class="bi bi-x-lg"></i>
                             </span>
-                            <!-- 入力フォーム -->
-                            <input type="text" name="tag_name"
-                                class="form-control"
-                                wire:model.live="tag_name" wire:keydown.enter="tagCreate"
-                                x-on:end-tag-create.window="tagCreateMode =false" x-init="$el.focus()"
-                                placeholder="新しいタグを作成" required>
+
+                            {{-- 新規タグ名フィールド --}}
+                            <div class="flex-grow-1">
+                                <x-form-input wire:model="tagName" wire:keydown.enter="createTag"/>
+                            </div>
                         </div>
+                        
                     </div>
 
                     <!--タグ一覧-->
                     <ul class="list-group list-group-flush">
-                        @foreach ($this->tags as $tag)
-                            <li class="list-group-item">
-                                <!--編集モード表示-->
+                        @foreach ($this->tagColl as $tag)
+                            <li class="list-group-item d-flex align-items-center">
+                                {{-- 編集中のタグが存在すれば表示 --}}
                                 @if ($this->editingTagId === $tag->id)
-                                    <div class="align-items-center input-group mb-3">
-                                        <!--クリックで削除(deleteTag()を実行)-->
-                                        <span class=" p-0" wire:click="deleteTag({{ $tag->id }})"
-                                            wire:confirm="本当に削除しますか？">
-                                            <i class="bi bi-trash me-2"></i>
-                                        </span>
-                                        <!--入力フォーム(決定でデータ更新)-->
-                                        <input type="text" class="form-control me-2" wire:model="editingTagName"
-                                            wire:keydown.enter="tagUpdate" x-init="$el.focus()">
-                                        <!--編集確定-->
-                                        <span wire:click="tagUpdate">
-                                            <i class="bi bi-check2"></i>
+                                    
+                                    {{-- 編集モード --}}
+                                    <div class="input-group flex-grow-1"> 
+                                        {{-- タグ削除ボタン --}}
+                                        <x-trash-button wire:click="deleteTag({{ $tag->id }})"/>
+
+                                        {{-- 編集タグフィールド --}}
+                                        <x-form-input wire:model="editingTagName" wire:keydown.enter="updateTag"/>
+            
+                                        {{-- 確定ボタン --}}
+                                        <x-confirm-button  wire:click="updateTag"/>
+                                    </div>
+                                @else
+                                    {{-- 一覧モード表示 
+                                    - クリックするごとに編集中のタグが更新される 
+                                    --}}
+                                    <div wire:click="switchEdit({{ $tag->id }})">
+                                        <span class="d-flex align-items-center flex-grow-1">
+                                            <i class="bi bi-tag text-decoration-none me-2"></i>
+                                            {{ $tag->tag_name }}
                                         </span>
                                     </div>
-                                    <!--一覧モード表示-->
-                                @else
-                                    <!--クリックで編集モードに切り替え-->
-                                    <span class="d-flex align-items-center flex-grow-1"
-                                        wire:click="switchEdit({{ $tag->id }})">
-                                        <i class="mb-0 text-dark text-decoration-none"></i>{{ $tag->tag_name }}
-                                    </span>
                                 @endif
                             </li>
                         @endforeach
                     </ul>
+                    </form>
                 </div>
             </div>
         </div>

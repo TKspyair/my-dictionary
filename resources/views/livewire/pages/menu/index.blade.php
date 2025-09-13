@@ -25,7 +25,7 @@ new #[Layout('layouts.words-app')] class extends Component
             <!--タグメニュー-->
             <div class="d-flex justify-content-between align-text-center m-1">
                 <h6>タグ</h6>
-                <span x-on:click="$dispatch('open-tag-modal')">設定</span>
+                <span x-on:click="$dispatch('open-tags-create-modal')">設定</span>
             </div>
             
             <!--タグ一覧-->

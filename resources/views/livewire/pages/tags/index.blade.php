@@ -5,7 +5,7 @@ use Livewire\Attributes\On;
 
 new #[Layout('layouts.words-app')] class extends Component
 {
-    public $tags;
+    public $tagColl;
 
     //初期読み込み時に実行
     public function mount()
@@ -14,22 +14,21 @@ new #[Layout('layouts.words-app')] class extends Component
     }
 
     //　タグ一覧の更新
-    #[On('tagListUpdate')]
+    #[On('update-tag-list')]
     public function loadTags(): void
     {
-        $this->tags = Auth::user()->tags()->orderBy('created_at', 'desc')->get();
+        $this->tagColl = Auth::user()->tags()->orderBy('created_at', 'desc')->get();
     }
 };
 ?>
 
 <!--タグ一覧-->
-
 <div>
     <ul class="list-group list-group-flush m-0 p-0">
-        @foreach ($this->tags as $tag)
+        @foreach ($this->tagColl as $tag)
             <li class="list-group-item d-flex align-items-center p-2">
                 <i class="bi bi-tag me-2"></i>
-                <a class="mb-0 text-dark text-decoration-none">{{ $tag->tag_name }}</a>
+                <span class="mb-0 text-dark text-decoration-none">{{ $tag->tag_name }}</span>
             </li>
         @endforeach
     </ul>

@@ -24,7 +24,7 @@ new #[Layout('layouts.words-app')] class extends Component
     public array $checkedWordTagIds = [];
 
     //語句詳細モーダルを開く
-    #[On('openWordDetailModal')]
+    #[On('open-word-detail-Modal')]
     public function openWordDetailModal(Word $word): void
     {
         $this->word = $word;
@@ -71,7 +71,7 @@ new #[Layout('layouts.words-app')] class extends Component
         */
         
         // wordsテーブルの更新イベントを渡す(words/indexへ)
-        $this->dispatch('wordsUpdated');
+        $this->dispatch('update-words');
     }
 
     //語句の削除
@@ -81,7 +81,7 @@ new #[Layout('layouts.words-app')] class extends Component
         $this->word->delete();
 
         // wordsテーブルの更新イベントを渡す
-        $this->dispatch('wordsUpdated');
+        $this->dispatch('update-words');
     }
 };
 ?>
@@ -189,7 +189,7 @@ new #[Layout('layouts.words-app')] class extends Component
                                 </div>
 
                                 <!-- タグ選択コンポーネントを開く -->
-                                <span x-on:click="$dispatch('open-tag-check-list')" wire:click="checkedWordTagIds">
+                                <span x-on:click="$dispatch('open-tags-check-list')" wire:click="checkedWordTagIds">
                                     タグ選択
                                 </span>
                                 <!-- チェックしたタグ一覧 -->
