@@ -163,7 +163,7 @@ new #[Layout('layouts.words-app')] class extends Component
                     <div class="modal-header d-flex align-items-center">
 
                         <!--戻るボタン-->
-                        <x-back-button />
+                        <x-back-button data-bs-toggle="offcanvas" data-bs-target="#menu-index-offcanvas"/>
 
                         <h5 class="modal-title mb-0">タグの編集</h5>
                     </div>
@@ -174,12 +174,18 @@ new #[Layout('layouts.words-app')] class extends Component
                             {{-- タグ作成欄 --}}
                             <div>
                                 {{-- 通常モード --}}
-                                <div x-show="!tagCreateMode" x-on:click="tagCreateMode = true">
+                                <div x-show="!tagCreateMode" x-on:click="tagCreateMode = true; $nextTick(() => $refs.tagName.focus())"> 
                                     <span>
                                         <i class="bi bi-plus-lg me-2"></i>新しいタグを作成
                                     </span>
                                 </div>
+                                <!--
+                                - x-init : 要素がDOMに最初に描画されたときに一度だけコードを実行  例　ページ読み込み時の初期設定
+                                    ※　x-showで要素の表示・非表示が切り替わっても、再度実行されることはありません。
 
+                                - $nextTick : Alpine.jsがDOMの更新を完了した直後にコードを実行します。
+                                　※　$nextTickは関数であり、実行したい処理をコールバック関数として渡す必要があります
+                                -->
                                 {{-- タグ作成モード --}}
                                 <div x-show="tagCreateMode"> <!-- モード切替を一番上の要素にすることで、子要素のd-flexなどに影響されないようにする -->
                                     <div class="d-flex align-items-center has-validation">
@@ -191,7 +197,9 @@ new #[Layout('layouts.words-app')] class extends Component
                                         </span>
 
                                         {{-- 新規タグ名フィールド --}}
-                                        <x-form-input name="tagName" wire:model="tagName" wire:click="clearCreateForm"/>
+                                        <x-form-input wire:model="tagName" 
+                                            wire:click="createTag" wire:keydown.enter="createTag" 
+                                            x-ref="tagName"/>
                                     </div>
                                 </div>
 
@@ -209,8 +217,8 @@ new #[Layout('layouts.words-app')] class extends Component
                                                 <x-trash-button wire:click="deleteTag({{ $tag->id }})" />
 
                                                 {{-- 編集タグフィールド --}}
-                                                <x-form-input wire:model="editingTagName"
-                                                    wire:keydown.enter="updateTag" />
+                                                <x-form-input wire:model="editingTagName" wire:keydown.enter="updateTag"
+                                                />
 
                                                 {{-- 確定ボタン --}}
                                                 <x-confirm-button wire:click="updateTag" />

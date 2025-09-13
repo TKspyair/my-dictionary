@@ -13,7 +13,7 @@ new #[Layout('layouts.words-app')] class extends Component {};
 
         <!-- メニューボタン -->
         <div class="justify-content-start p-0">
-            <span data-bs-toggle="offcanvas" data-bs-target="#menu-offcanvas"> <!-- data-bs-targetで動作させたい要素のidを指定-->
+            <span data-bs-toggle="offcanvas" data-bs-target="#menu-index-offcanvas"> <!-- data-bs-targetで動作させたい要素のidを指定-->
                 <i class="bi bi-list fs-2"></i>
             </span>
         </div>
