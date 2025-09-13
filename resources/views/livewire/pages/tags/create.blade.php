@@ -3,13 +3,13 @@
 use App\Models\User;
 use App\Models\Tag;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\Rule; 
+use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Computed;
 use Livewire\Volt\Component;
 
-new #[Layout('layouts.words-app')] class extends Component 
+new #[Layout('layouts.words-app')] class extends Component
 {
     //Tagテーブルのコレクション
     public $tagColl;
@@ -47,14 +47,14 @@ new #[Layout('layouts.words-app')] class extends Component
         return [
             // tagNameプロパティ
             'tagName.required' => 'タグ名は必須です。',
-            'tagName.string' => 'タグ名は文字列で入力してください。', 
-            'tagName.max' => 'タグ名は255文字以内で入力してください。', 
+            'tagName.string' => 'タグ名は文字列で入力してください。',
+            'tagName.max' => 'タグ名は255文字以内で入力してください。',
             'tagName.unique' => 'このタグ名は既に使用されています。',
 
             // editingTagNameプロパティ
             'editingTagName.required' => 'タグ名は必須です。',
-            'editingTagName.string' => 'タグ名は文字列で入力してください。', 
-            'editingTagName.max' => 'タグ名は255文字以内で入力してください。', 
+            'editingTagName.string' => 'タグ名は文字列で入力してください。',
+            'editingTagName.max' => 'タグ名は255文字以内で入力してください。',
             'editingTagName.unique' => 'このタグ名は既に使用されています。',
         ];
     }
@@ -147,89 +147,92 @@ new #[Layout('layouts.words-app')] class extends Component
     }
 }; ?>
 
-<div class="container-fluid" x-data="{ tagCreateMode: false, showModal: false }" 
+<div class="container-fluid" x-data="{ tagCreateMode: false, showModal: false }"
     x-on:open-tags-create-modal.window="showModal = true"
-    x-on:close-all-modal.window="showModal= false" 
-    x-on:end-tag-create-mode="tagCreateMode = false">
+    x-on:close-all-modal.window="showModal= false"
+    x-on:end-tag-create-mode="tagCreateMode = false"
+    ">
 
     <!--モーダル部分-->
-    <div x-bind:class="{ 'modal': true, 'd-block': showModal }" tabindex="-1">
-        <div class="modal-dialog modal-fullscreen">
-            <div class="modal-content">
+    <div x-show="showModal">
+        <div class="modal d-block" tabindex="-1"> <!-- d-blockでmodal(display:none)を打ち消す -->
+            <div class="modal-dialog modal-fullscreen">
+                <div class="modal-content">
 
-                <!--ヘッダー-->
-                <div class="modal-header d-flex align-items-center">
-                    
-                    <!--戻るボタン-->
-                    <x-back-button/>
+                    <!--ヘッダー-->
+                    <div class="modal-header d-flex align-items-center">
 
-                    <h5 class="modal-title mb-0">タグの編集</h5>
-                </div>
+                        <!--戻るボタン-->
+                        <x-back-button />
 
-                <!-- ボディ -->
-                <div class="modal-body">
-                    <form>
-
-                    {{-- タグ作成 --}}
-                    <div>
-                        {{-- 通常モード --}}
-                        <div x-show="!tagCreateMode" x-on:click="tagCreateMode = true">
-                            <span>
-                                <i class="bi bi-plus-lg me-2"></i>新しいタグを作成
-                            </span>
-                        </div>
-
-                        {{-- 作成モード --}}
-                        <div x-show="tagCreateMode" x-bind:class="{'d-flex align-items-center has-validation' : tagCreateMode}">
-
-                            {{-- 作成キャンセルボタン --}}
-                            <span x-on:click="tagCreateMode = false" wire:click="clearCreateForm" class="me-3">
-                                <i class="bi bi-x-lg"></i>
-                            </span>
-
-                            {{-- 新規タグ名フィールド --}}
-                            <div class="flex-grow-1">
-                                <x-form-input wire:model="tagName" wire:keydown.enter="createTag"/>
-                            </div>
-                        </div>
-                        
+                        <h5 class="modal-title mb-0">タグの編集</h5>
                     </div>
 
-                    <!--タグ一覧-->
-                    <ul class="list-group list-group-flush">
-                        @foreach ($this->tagColl as $tag)
-                            <li class="list-group-item d-flex align-items-center">
-                                {{-- 編集中のタグが存在すれば表示 --}}
-                                @if ($this->editingTagId === $tag->id)
-                                    
-                                    {{-- 編集モード --}}
-                                    <div class="input-group flex-grow-1"> 
-                                        {{-- タグ削除ボタン --}}
-                                        <x-trash-button wire:click="deleteTag({{ $tag->id }})"/>
+                    <!-- ボディ -->
+                    <div class="modal-body">
 
-                                        {{-- 編集タグフィールド --}}
-                                        <x-form-input wire:model="editingTagName" wire:keydown.enter="updateTag"/>
-            
-                                        {{-- 確定ボタン --}}
-                                        <x-confirm-button  wire:click="updateTag"/>
-                                    </div>
-                                @else
-                                    {{-- 一覧モード表示 
-                                    - クリックするごとに編集中のタグが更新される 
-                                    --}}
-                                    <div wire:click="switchEdit({{ $tag->id }})">
-                                        <span class="d-flex align-items-center flex-grow-1">
-                                            <i class="bi bi-tag text-decoration-none me-2"></i>
-                                            {{ $tag->tag_name }}
+                            {{-- タグ作成欄 --}}
+                            <div>
+                                {{-- 通常モード --}}
+                                <div x-show="!tagCreateMode" x-on:click="tagCreateMode = true">
+                                    <span>
+                                        <i class="bi bi-plus-lg me-2"></i>新しいタグを作成
+                                    </span>
+                                </div>
+
+                                {{-- タグ作成モード --}}
+                                <div x-show="tagCreateMode"> <!-- モード切替を一番上の要素にすることで、子要素のd-flexなどに影響されないようにする -->
+                                    <div class="d-flex align-items-center has-validation">
+
+                                        {{-- 作成キャンセルボタン --}}
+                                        <span x-on:click="tagCreateMode = false" wire:click="clearCreateForm"
+                                            class="me-3">
+                                            <i class="bi bi-x-lg"></i>
                                         </span>
+
+                                        {{-- 新規タグ名フィールド --}}
+                                        <x-form-input name="tagName" wire:model="tagName" wire:click="clearCreateForm"/>
                                     </div>
-                                @endif
-                            </li>
-                        @endforeach
-                    </ul>
-                    </form>
+                                </div>
+
+                            </div>
+
+                            <!-- タグ一覧 -->
+                            <ul class="list-group list-group-flush">
+                                @foreach ($this->tagColl as $tag)
+                                    <li class="list-group-item d-flex align-items-center">
+                                        {{-- 編集中のタグが存在すれば表示 --}}
+                                        @if ($this->editingTagId === $tag->id)
+                                            {{-- 編集モード --}}
+                                            <div class="input-group flex-grow-1">
+                                                {{-- タグ削除ボタン --}}
+                                                <x-trash-button wire:click="deleteTag({{ $tag->id }})" />
+
+                                                {{-- 編集タグフィールド --}}
+                                                <x-form-input wire:model="editingTagName"
+                                                    wire:keydown.enter="updateTag" />
+
+                                                {{-- 確定ボタン --}}
+                                                <x-confirm-button wire:click="updateTag" />
+                                            </div>
+                                        @else
+                                            {{-- 一覧モード表示
+                                    - クリックするごとに編集中のタグが更新される
+                                    --}}
+                                            <div wire:click="switchEdit({{ $tag->id }})">
+                                                <span class="d-flex align-items-center flex-grow-1">
+                                                    <i class="bi bi-tag text-decoration-none me-2"></i>
+                                                    {{ $tag->tag_name }}
+                                                </span>
+                                            </div>
+                                        @endif
+                                    </li>
+                                @endforeach
+                            </ul>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+

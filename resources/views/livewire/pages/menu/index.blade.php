@@ -13,7 +13,7 @@ new #[Layout('layouts.words-app')] class extends Component
     <!--メニューボタン-->
     
     <!--オフキャンバス-->
-    <div class="offcanvas offcanvas-start w-75" tabindex="-1" id="menu-offcanvas" aria-labelledby="offcanvas">
+    <div class="offcanvas offcanvas-start w-75" tabindex="-1" id="menu-offcanvas">
         <!-- ヘッダー -->
         <div class="offcanvas-header">
             <h5 class="offcanvas-title" id="offcanvas">メニュー</h5>
@@ -25,7 +25,8 @@ new #[Layout('layouts.words-app')] class extends Component
             <!--タグメニュー-->
             <div class="d-flex justify-content-between align-text-center m-1">
                 <h6>タグ</h6>
-                <span x-on:click="$dispatch('open-tags-create-modal')">設定</span>
+                {{-- $dispatchでtags.createのモーダルを開く --}}
+                <span x-on:click="$dispatch('open-tags-create-modal')" data-bs-dismiss="offcanvas">設定</span>
             </div>
             
             <!--タグ一覧-->

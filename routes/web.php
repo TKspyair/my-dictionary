@@ -3,8 +3,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
-use App\Http\Controllers\TagController;
-use App\Http\Controllers\WordController;
+
 
 
 // ルートURL '/' にリクエストがきたときの処理

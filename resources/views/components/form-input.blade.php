@@ -1,4 +1,4 @@
-<input type="text" x-init="$el.focus()"
+<input type="text" 
     {{ $attributes
     ->class([
         'is-invalid' => $attributes->has('wire:model') && $errors->has($attributes->get('wire:model')),])
