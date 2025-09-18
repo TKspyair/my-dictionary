@@ -26,7 +26,7 @@ new #[Layout('layouts.words-app')] class extends Component
 <div>
     <ul class="list-group list-group-flush m-0 p-0">
         @foreach ($this->tagColl as $tag)
-            <li class="list-group-item d-flex align-items-center p-2">
+            <li class="list-group-item d-flex align-items-center p-2" wire:key="{{ $tag->id }}">
                 <i class="bi bi-tag me-2"></i>
                 <span class="mb-0 text-dark text-decoration-none">{{ $tag->tag_name }}</span>
             </li>

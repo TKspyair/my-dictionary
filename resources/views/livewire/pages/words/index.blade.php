@@ -48,4 +48,6 @@ new #[Layout('layouts.words-app')] class extends Component {};
     @livewire('pages.menu.index')
     <!-- 語句詳細・編集 -->
     @livewire('pages.words.detail-and-edit')
+    <!-- テスト時のみ有効化 -->
+    <!--@ livewire('pages.test')-->
 </div>

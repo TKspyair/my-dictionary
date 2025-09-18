@@ -9,13 +9,13 @@ use Livewire\Attributes\On;
 use Livewire\Attributes\Computed;
 use Livewire\Volt\Component;
 
-new #[Layout('layouts.words-app')] class extends Component
+new #[Layout('layouts.words-app')] class extends Component 
 {
     //Tagテーブルのコレクション
     public $tagColl;
 
     //新規作成中のTagインスタンスのプロパティ
-    public $tagName;
+    public $newTagName;
 
     // 編集中のTagインスタンスのプロパティ
     public int $editingTagId = 0;
@@ -25,7 +25,7 @@ new #[Layout('layouts.words-app')] class extends Component
     public function rules()
     {
         return [
-            'tagName' => [
+            'newTagName' => [
                 'required',
                 'string',
                 'max:255',
@@ -46,10 +46,10 @@ new #[Layout('layouts.words-app')] class extends Component
     {
         return [
             // tagNameプロパティ
-            'tagName.required' => 'タグ名は必須です。',
-            'tagName.string' => 'タグ名は文字列で入力してください。',
-            'tagName.max' => 'タグ名は255文字以内で入力してください。',
-            'tagName.unique' => 'このタグ名は既に使用されています。',
+            'newTagName.required' => 'タグ名は必須です。',
+            'newTagName.string' => 'タグ名は文字列で入力してください。',
+            'newTagName.max' => 'タグ名は255文字以内で入力してください。',
+            'newTagName.unique' => 'このタグ名は既に使用されています。',
 
             // editingTagNameプロパティ
             'editingTagName.required' => 'タグ名は必須です。',
@@ -75,13 +75,13 @@ new #[Layout('layouts.words-app')] class extends Component
     //タグ作成時の処理
     public function createTag(): void
     {
-        $validated = $this->validateOnly('tagName');
+        $validated = $this->validateOnly('newTagName');
 
         // バリデーション成功後にタグ作成モードを終了
         $this->dispatch('end-tag-create-mode');
 
         Tag::create([
-            'tag_name' => $validated['tagName'],
+            'tag_name' => $validated['newTagName'],
             'user_id' => Auth::id(),
         ]);
 
@@ -96,7 +96,7 @@ new #[Layout('layouts.words-app')] class extends Component
     public function clearCreateForm()
     {
         $this->resetValidation();
-        $this->reset('tagName');
+        $this->reset('newTagName');
     }
 
     //編集モードへ切り替え
@@ -121,10 +121,6 @@ new #[Layout('layouts.words-app')] class extends Component
             Tag::find($this->editingTagId)->update([
                 'tag_name' => $validated['editingTagName'],
             ]);
-            /** update()を使用する理由
-             * save() : モデル(インスタンス)の現在の状態をデータベースに保存　例 [インスタンス]->save();
-             * update() : 引数で渡された配列の内容でデータベースを更新する　例 [インスタンス]->update(['カラム名'　=> 値])
-             */
             $this->clearEditForm();
             $this->dispatch('update-tag-list');
         }
@@ -147,11 +143,8 @@ new #[Layout('layouts.words-app')] class extends Component
     }
 }; ?>
 
-<div class="container-fluid" x-data="{ tagCreateMode: false, showModal: false }"
-    x-on:open-tags-create-modal.window="showModal = true"
-    x-on:close-all-modal.window="showModal= false"
-    x-on:end-tag-create-mode="tagCreateMode = false"
-    ">
+<section class="container-fluid" x-data="{ tagCreateMode: false, showModal: false }" x-on:open-tags-create-modal.window="showModal = true"
+    x-on:close-all-modal.window="showModal= false" x-on:end-tag-create-mode="tagCreateMode = false">
 
     <!--モーダル部分-->
     <div x-show="showModal">
@@ -160,55 +153,49 @@ new #[Layout('layouts.words-app')] class extends Component
                 <div class="modal-content">
 
                     <!--ヘッダー-->
-                    <div class="modal-header d-flex align-items-center">
+                    <header class="modal-header d-flex align-items-center">
 
                         <!--戻るボタン-->
-                        <x-back-button data-bs-toggle="offcanvas" data-bs-target="#menu-index-offcanvas"/>
+                        <x-back-button data-bs-toggle="offcanvas" data-bs-target="#menu-index-offcanvas" />
 
                         <h5 class="modal-title mb-0">タグの編集</h5>
-                    </div>
+                    </header>
 
                     <!-- ボディ -->
                     <div class="modal-body">
 
-                            {{-- タグ作成欄 --}}
-                            <div>
-                                {{-- 通常モード --}}
-                                <div x-show="!tagCreateMode" x-on:click="tagCreateMode = true; $nextTick(() => $refs.tagName.focus())"> 
-                                    <span>
-                                        <i class="bi bi-plus-lg me-2"></i>新しいタグを作成
-                                    </span>
-                                </div>
-                                <!--
-                                - x-init : 要素がDOMに最初に描画されたときに一度だけコードを実行  例　ページ読み込み時の初期設定
-                                    ※　x-showで要素の表示・非表示が切り替わっても、再度実行されることはありません。
-
-                                - $nextTick : Alpine.jsがDOMの更新を完了した直後にコードを実行します。
-                                　※　$nextTickは関数であり、実行したい処理をコールバック関数として渡す必要があります
-                                -->
-                                {{-- タグ作成モード --}}
-                                <div x-show="tagCreateMode"> <!-- モード切替を一番上の要素にすることで、子要素のd-flexなどに影響されないようにする -->
-                                    <div class="d-flex align-items-center has-validation">
-
-                                        {{-- 作成キャンセルボタン --}}
-                                        <span x-on:click="tagCreateMode = false" wire:click="clearCreateForm"
-                                            class="me-3">
-                                            <i class="bi bi-x-lg"></i>
-                                        </span>
-
-                                        {{-- 新規タグ名フィールド --}}
-                                        <x-form-input wire:model="tagName" 
-                                            wire:click="createTag" wire:keydown.enter="createTag" 
-                                            x-ref="tagName"/>
-                                    </div>
-                                </div>
-
+                        {{-- タグ作成欄 --}}
+                        <article>
+                            {{-- 通常モード --}}
+                            <div x-show="!tagCreateMode"
+                                x-on:click="tagCreateMode = true">
+                                <span>
+                                    <i class="bi bi-plus-lg me-2"></i>新しいタグを作成
+                                </span>
                             </div>
 
-                            <!-- タグ一覧 -->
+                            {{-- タグ作成モード --}}
+                            <div x-show="tagCreateMode; $nextTick(() => $refs.newTagName.focus());"> 
+                                <div class="d-flex align-items-center has-validation">
+
+                                    {{-- 作成キャンセルボタン --}}
+                                    <span x-on:click="tagCreateMode = false" wire:click="clearCreateForm"
+                                        class="me-3">
+                                        <i class="bi bi-x-lg"></i>
+                                    </span>
+
+                                    {{-- 新規タグ名フィールド --}}
+                                    <x-form-input wire:model="newTagName" wire:click="createTag"
+                                        wire:keydown.enter="createTag" x-ref="newTagName" />
+                                </div>
+                            </div>
+                        </article>
+
+                        <!-- タグ一覧 -->
+                        <article>
                             <ul class="list-group list-group-flush">
                                 @foreach ($this->tagColl as $tag)
-                                    <li class="list-group-item d-flex align-items-center">
+                                    <li class="list-group-item d-flex align-items-center" wire:key="{{ $tag->id }}">
                                         {{-- 編集中のタグが存在すれば表示 --}}
                                         @if ($this->editingTagId === $tag->id)
                                             {{-- 編集モード --}}
@@ -217,8 +204,9 @@ new #[Layout('layouts.words-app')] class extends Component
                                                 <x-trash-button wire:click="deleteTag({{ $tag->id }})" />
 
                                                 {{-- 編集タグフィールド --}}
-                                                <x-form-input wire:model="editingTagName" wire:keydown.enter="updateTag"
-                                                />
+                                                <x-form-input x-init="$el.focus()"
+                                                    wire:model="editingTagName"
+                                                    wire:keydown.enter="updateTag" />
 
                                                 {{-- 確定ボタン --}}
                                                 <x-confirm-button wire:click="updateTag" />
@@ -237,10 +225,10 @@ new #[Layout('layouts.words-app')] class extends Component
                                     </li>
                                 @endforeach
                             </ul>
+                        </article>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
-
+</section>

@@ -9,6 +9,7 @@ use Livewire\Attributes\On; // #[On('wordsUpdated')]の使用
 
 new #[Layout('layouts.words-app')] class extends Component 
 {
+    //Wordコレクション
     public $wordColl;
 
     //語句リストの初期読み込み
@@ -24,25 +25,25 @@ new #[Layout('layouts.words-app')] class extends Component
         $this->wordColl = Auth::user()->words()->orderBy('created_at', 'desc')->get();
     }
     
-    //リスト内の語句をクリック時に実行
-    public function showWordDetail(Word $word): void
+    //リスト内の語句名をクリック時に実行、Wordインスタンスを受け取り送信
+    public function dispatchWordInstance(Word $word): void
     {
         // クリックした語句のモデルインスタンスを渡す
-        $this->dispatch('openWordDetailModal', word: $word)
+        $this->dispatch('dispatch-word-instance', word: $word)
         ->to('pages.words.detail-and-edit');
     }
 }; ?>
 
 <!--語句リスト-->
-<div>
+<section>
     <ul class="list-group">
         @foreach ($this->wordColl as $word)
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-                <!--語句のクリック時にshowWordDetailメソッドを実行し、詳細ページへ飛ぶ-->
-                <a class="mb-0 text-dark text-decoration-none"  wire:click="showWordDetail({{ $word }})">
+            <li class="list-group-item d-flex justify-content-between align-items-center" wire:key="{{ $word->id }}">
+                <span wire:click="dispatchWordInstance({{ $word }})"
+                    class="mb-0 text-dark text-decoration-none" >
                     {{ $word->word_name }}
-                </a> 
+                </span> 
             </li>
         @endforeach
     </ul>
-</div>
+</section>

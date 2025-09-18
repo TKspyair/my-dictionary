@@ -1,4 +1,4 @@
-<input type="text" x-init="$el.focus()"
+<input type="text"
     {{ $attributes
     ->class([
         'is-invalid' => $attributes->has('wire:model') && $errors->has($attributes->get('wire:model')),])
@@ -10,7 +10,8 @@
 - fs-6: フォントサイズを1rem（通常、ブラウザの標準フォントサイズと同じ）に設定します。
 - lh-sm: 行の高さを少し狭く設定します。
 - border-0: input要素の枠線をなくす
-<--
+-->
+
 
 @if ($attributes->has('wire:model'))
     @error($attributes->get('wire:model'))

@@ -10,13 +10,13 @@ use Livewire\Volt\Component;
 
 new #[Layout('layouts.words-app')] class extends Component 
 {
-    //words.word-listから送信された語句インスタンスを格納
+    //インスタンスを格納
     public Word $word;
 
-    //$this->word->word_nameを格納
+    //word_nameの値
     public ?string $wordName = '';
 
-    //$this->word->descriptionを格納
+    //descriptionの値
     public ?string $wordDescription = '';
 
     //$wordに紐づくtagsコレクション
@@ -24,7 +24,6 @@ new #[Layout('layouts.words-app')] class extends Component
 
     public array $checkedTagIds = [];
 
-    //初期読込時に実行
     public function mount()
     {
         //nullだとfoeeach文がエラーを起こすため回避
@@ -125,6 +124,7 @@ new #[Layout('layouts.words-app')] class extends Component
         $this->dispatch('update-words');
     }
 
+    //語句の削除
     public function deleteWord(): void
     {
         // 現在編集中の語句をDBから削除
@@ -135,19 +135,12 @@ new #[Layout('layouts.words-app')] class extends Component
         // wordsテーブルの更新イベントを渡す
         $this->dispatch('update-words');
     }
-
-
-    public function dispatchWordInstance(Word $word): void
-        {
-            // クリックした語句のモデルインスタンスを渡す
-            $this->dispatch('dispatch-word-instance', word: $word)
-            ->to('pages.words.detail-and-edit');
-        }
 };
 ?>
 
 
-<section class="container-lg" x-data="{ showModal: false, editWordMode: false }" x-on:open-words-detail-and-edit-modal.window="showModal = true"
+<section class="container-lg" x-data="{ showModal: false }" 
+    x-on:open-words-edit-modal.window="showModal = true"
     x-on:close-all-modal.window="showModal = false">
 
     <!-- モーダル本体 -->
@@ -159,74 +152,14 @@ new #[Layout('layouts.words-app')] class extends Component
                     <!-- ボディ -->
                     <div class="modal-body">
 
-                        <!-- 詳細モード -->
-                        <article x-show="!editWordMode">
-
-                            <!-- 画面上部操作アイコン群 -->
-                            <header class="modal-header d-flex justify-content-between align-items-center p-0 pb-2">
-
-                                <div class="d-flex align-items-center">
-                                    <!--戻るボタン-->
-                                    <x-back-button />
-
-                                    <!-- タイトル -->
-                                    <h5 class="m-0">詳細</h5>
-                                </div>
-
-                                <!-- ドロップダウンメニュー -->
-                                <section class="dropdown">
-                                    <span data-bs-toggle="dropdown" class="me-2">
-                                        <i class="bi bi-three-dots-vertical"></i>
-                                    </span>
-                                    <ul class="dropdown-menu p-1">
-
-                                        <!-- 編集ボタン クリックで編集モードON-->
-                                        <li x-on:click="editWordMode =true" class="m-1">
-                                            <span><i class="bi bi-pencil me-1"></i>編集</span>
-                                        </li>
-
-                                        <!-- 削除ボタン -->
-                                        <li x-on:click="showModal = false" wire:click="deleteWord"
-                                            wire:confirm="本当に削除しますか？" class="m-1">
-                                            <span><i class="bi bi-trash me-1"></i>削除</span>
-                                        </li>
-                                    </ul>
-                                </section>
-                            </header>
-
-                            <!-- 語句名 -->
-                            <div class="mt-4">
-                                <h5>{{ $this->wordName }}</h5>
-                            </div>
-
-                            <!-- 説明フィールド -->
-                            <div>
-                                <p class="text-break">
-                                    {{ $this->wordDescription }}
-                                </p>
-                            </div>
-
-                            <!-- タグ一覧 -->
-                            <div class="d-flex">
-                                {{--  --}}
-                                @foreach ($this->checkedTagColl as $checkedTag)
-                                    <span wire:key="{{ $checkedTag->id }}" class="badge bg-secondary me-1">
-                                        {{ $checkedTag->tag_name }}
-                                    </span>
-                                @endforeach
-
-                            </div>
-                        </article>
-                        <!-- ここまで詳細 -->
-
                         <!-- 編集モード -->
-                        <article x-show="editWordMode">
+                        <article>
                             <form wire:submit.prevent="updateWord">
 
                                 <!-- ヘッダー -->
                                 <header class="modal-header d-flex align-items-center p-0 pb-2">
                                     <!--戻るボタン-->
-                                    <x-back-button x-on:click="editWordMode = false" />
+                                    <x-back-button/>
 
                                     <!-- タイトル -->
                                     <h5 class="m-0">編集</h5>

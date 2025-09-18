@@ -14,7 +14,7 @@ new #[Layout('layouts.words-app')] class extends Component
 
     //検索した語句のコレクション
     #[Computed]
-    public function words(): Collection
+    public function wordColl(): Collection
     {
         //プロパティの初期化
         if (!$this->search) {
@@ -29,36 +29,38 @@ new #[Layout('layouts.words-app')] class extends Component
     //リスト内の語句をクリック時に実行
     public function showWordDetail(Word $word): void
     {
-        $this->dispatch('openWordDetailModal', word: $word)
+        $this->dispatch('open-words-detail-and-edit-modal', word: $word)
         ->to('pages.words.detail');
     }
 }; ?>
 
-<div x-data="{ showWordList: false }" x-on:click.outside="showWordList = false" class="position-relative">
-    <!--検索バー-->
+<section x-data="{ showWordList: false }" x-on:click.outside="showWordList = false" class="position-relative">
+    <!-- 検索バー -->
     <input  type="text" wire:model.live="search" x-on:focus="showWordList = true" 
         class="form-control" autocomplete="off"  placeholder="語句を検索...">
 
     <!-- 検索結果の表示リスト -->
-    @if ($this->search && $this->words->count() > 0)
-        <div x-show="showWordList" class="card position-absolute w-100 z-1">
-            <ul class="list-group list-group-flush">
-                
-                @foreach ($this->words as $word)
-                    <li class="list-group-item">
-                        <a wire:click="showWordDetail({{ $word }})" class="text-dark text-decoration-none">
-                            {{ $word->word_name }}
-                        </a>
-                    </li>
-                @endforeach
-            </ul>
-        </div>
-    <!--検索結果がないが、文字を入力しているときに実行-->
-    @elseif($this->search && $this->words->count() === 0)
-        <div x-show="showWordList" class="card position-absolute w-100 z-1">
-            <div class="card-body">
-                <p class="mb-0 text-muted">語句が見つかりません。</p>
+    <article x-show="showWordList">
+        @if ($this->search && $this->words->count() > 0)
+            <div class="card position-absolute w-100 z-1">
+                <ul class="list-group list-group-flush">
+
+                    @foreach ($this->wordColl as $word)
+                        <li wire:key="{{ $word->id }}" class="list-group-item">
+                            <a wire:click="showWordDetail({{ $word }})" class="text-dark text-decoration-none">
+                                {{ $word->word_name }}
+                            </a>
+                        </li>
+                    @endforeach
+                </ul>
             </div>
-        </div>
-    @endif
-</div>
+        <!--検索結果がないが、文字を入力しているときに実行-->
+        @elseif($this->search && $this->wordColl->count() === 0)
+            <div class="card position-absolute w-100 z-1">
+                <div class="card-body">
+                    <p class="mb-0 text-muted">語句が見つかりません。</p>
+                </div>
+            </div>
+        @endif
+    </article>
+</section>

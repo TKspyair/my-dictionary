@@ -49,7 +49,7 @@ new #[Layout('layouts.words-app')] class extends Component
     }
 
     //tags.check-listから引数を渡される
-    #[On('return-checked-tag-ids')]
+    #[On('dispatch-checked-tag-ids')]
     public function loadCheckedTags(array $checkedTagIds)
     {
         //引数のタグidをもつタグコレクションを取得
@@ -95,6 +95,7 @@ new #[Layout('layouts.words-app')] class extends Component
 }; ?>
 
 
+
 <div class="container-fluid" x-data="{ showModal: false }" 
     x-on:open-words-create-modal.window="showModal = true"
     x-on:close-all-modal.window="showModal = false">
@@ -133,7 +134,7 @@ new #[Layout('layouts.words-app')] class extends Component
                             @if ($this->checkedTags)
                                 <div class="d-flex">
                                     @foreach ($this->checkedTags as $checkedTag)
-                                        <span class="badge bg-secondary me-1">
+                                        <span class="badge bg-secondary me-1" wire:key="{{ $checkedTag->id }}">
                                             {{ $checkedTag->tag_name }}
                                         </span>
                                     @endforeach
