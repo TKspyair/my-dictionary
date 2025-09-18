@@ -13,9 +13,10 @@ new #[Layout('layouts.words-app')] class extends Component {};
 
         <!-- メニューボタン -->
         <div class="justify-content-start p-0">
-            <span data-bs-toggle="offcanvas" data-bs-target="#menu-index-offcanvas"> <!-- data-bs-targetで動作させたい要素のidを指定-->
+            <button data-bs-toggle="offcanvas" data-bs-target="#menu-index-offcanvas"
+                class="btn btn-link text-dark p-0 border-0"> <!-- data-bs-targetで動作させたい要素のidを指定-->
                 <i class="bi bi-list fs-2"></i>
-            </span>
+            </button>
         </div>
     
         <!--検索バー-->
@@ -47,7 +48,7 @@ new #[Layout('layouts.words-app')] class extends Component {};
     <!-- メニュー -->
     @livewire('pages.menu.index')
     <!-- 語句詳細・編集 -->
-    @livewire('pages.words.detail-and-edit')
+    @livewire('pages.words.detail-edit')
     <!-- テスト時のみ有効化 -->
     <!--@ livewire('pages.test')-->
 </div>

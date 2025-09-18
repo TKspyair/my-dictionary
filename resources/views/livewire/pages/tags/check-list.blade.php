@@ -28,7 +28,7 @@ new #[Layout('layouts.words-app')] class extends Component
     }
 
     //words.detail-and-editより
-    #[On('dispatch-checked-tag-ids')]
+    #[On('send-checked-tag-ids')]
     public function setCheckedTagIds(array $checkedwordTagIds)
     {
         //受け取ったidを格納
@@ -38,7 +38,7 @@ new #[Layout('layouts.words-app')] class extends Component
     //$checkedTagIdsの更新時に実行 配列で他に渡す
     public function updatedCheckedTagIds()
     {
-        $this->dispatch('dispatch-checked-tag-ids', checkedTagIds: $this->checkedTagIds);
+        $this->dispatch('send-checked-tag-ids', checkedTagIds: $this->checkedTagIds);
     }
 };
 ?>
@@ -50,11 +50,11 @@ new #[Layout('layouts.words-app')] class extends Component
             <div class="modal-dialog modal-fullscreen">
                 <div class="modal-content">
                     <!-- ヘッダー -->
-                    <header class="modal-header d-flex align-items-center">
+                    <header class="modal-header d-flex align-items-center p-2">
                         <!--戻るボタン-->
-                        <span x-on:click="showCheckList = false" class="p-0 me-3">
+                        <button x-on:click="showCheckList = false" class="btn btn-link text-dark border-0 p-0 me-3">
                             <i class="bi bi-arrow-left fs-4"></i>
-                        </span>
+                        </button>
 
                         <h5 class="modal-title mb-0">タグ</h5>
                     </header>

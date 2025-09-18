@@ -13,7 +13,7 @@
                 <div class="modal-content">
 
                     {{-- ヘッダー --}}
-                    <div class="modal-header d-flex align-items-center">
+                    <div class="modal-header d-flex align-items-center p-2">
                         <!--戻るボタン-->
                         <span x-on:click="showModal = false" {{ $attributes->merge(['class' => 'p-0 m-2']) }}>
                             <i class="bi bi-arrow-left fs-4"></i>

@@ -153,7 +153,7 @@ new #[Layout('layouts.words-app')] class extends Component
                 <div class="modal-content">
 
                     <!--ヘッダー-->
-                    <header class="modal-header d-flex align-items-center">
+                    <header class="modal-header d-flex align-items-center p-2">
 
                         <!--戻るボタン-->
                         <x-back-button data-bs-toggle="offcanvas" data-bs-target="#menu-index-offcanvas" />
@@ -179,10 +179,10 @@ new #[Layout('layouts.words-app')] class extends Component
                                 <div class="d-flex align-items-center has-validation">
 
                                     {{-- 作成キャンセルボタン --}}
-                                    <span x-on:click="tagCreateMode = false" wire:click="clearCreateForm"
-                                        class="me-3">
+                                    <button x-on:click="tagCreateMode = false" wire:click="clearCreateForm"
+                                        class="btn btn-link text-dark border-0 p-0 me-3">
                                         <i class="bi bi-x-lg"></i>
-                                    </span>
+                                    </button>
 
                                     {{-- 新規タグ名フィールド --}}
                                     <x-form-input wire:model="newTagName" wire:click="createTag"

@@ -12,7 +12,7 @@ class VoltServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        #
     }
 
 
@@ -32,8 +32,8 @@ pagesディレクトリにフルページコンポーネントを配置し、liv
             config('livewire.view_path', resource_path('views/livewire')),
             resource_path('views/pages'),
         ]);
-        // Volt::mount([...]) : Voltコンポーネントが含まれるディレクトリを登録し、Livewireは、ここで指定されたディレクトリ内にあるBladeファイルをVoltコンポーネントとして扱う
-        // config('config配下の取得したい値への相対パス', デフォルト値): ここではconfig/livewire/view_pathの値を取得
-        // resource_path(...) :  指定したパスをVoltコンポーネントを読み込むためのパスとして追加登録する
+        # Volt::mount([...]) : Voltコンポーネントが含まれるディレクトリを登録し、Livewireは、ここで指定されたディレクトリ内にあるBladeファイルをVoltコンポーネントとして扱う
+        # config('config配下の取得したい値への相対パス', デフォルト値): ここではconfig/livewire/view_pathの値を取得
+        # resource_path(...) :  指定したパスをVoltコンポーネントを読み込むためのパスとして追加登録する
     }
 }

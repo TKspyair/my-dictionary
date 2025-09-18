@@ -26,7 +26,7 @@ new #[Layout('layouts.words-app')] class extends Component
                 <div class="modal-content">
 
                     <!--ヘッダー-->
-                    <div class="modal-header d-flex align-items-center">
+                    <div class="modal-header d-flex align-items-center p-2">
 
                         <!--戻るボタン-->
                         <x-back-button data-bs-toggle="offcanvas" data-bs-target="#menu-index-offcanvas"/>

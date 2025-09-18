@@ -49,7 +49,7 @@ new #[Layout('layouts.words-app')] class extends Component
     }
 
     //tags.check-listから引数を渡される
-    #[On('dispatch-checked-tag-ids')]
+    #[On('send-checked-tag-ids')]
     public function loadCheckedTags(array $checkedTagIds)
     {
         //引数のタグidをもつタグコレクションを取得
@@ -108,7 +108,7 @@ new #[Layout('layouts.words-app')] class extends Component
                     <!--「.prevent」：ブラウザのデフォルトのフォーム送信を無効化し、ページのリロードをなくす-->
 
                     <!-- ヘッダー -->
-                    <div class="modal-header d-flex align-items-center">
+                    <div class="modal-header d-flex align-items-center p-2">
 
                         <!--戻るボタン-->
                         <x-back-button wire:click="clearForm"/>
