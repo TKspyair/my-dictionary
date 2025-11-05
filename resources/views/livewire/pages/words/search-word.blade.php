@@ -14,7 +14,7 @@ new #[Layout('layouts.words-app')] class extends Component
 
     //検索した語句のコレクション
     #[Computed]
-    public function wordColl(): Collection
+    public function words(): Collection
     {
         //プロパティの初期化
         if (!$this->search) {
@@ -27,27 +27,37 @@ new #[Layout('layouts.words-app')] class extends Component
     }
 
     //リスト内の語句をクリック時に実行
-    public function showWordDetail(Word $word): void
+    public function sendWord(Word $word): void
     {
         $this->dispatch('open-words-detail-and-edit-modal', word: $word)
-        ->to('pages.words.detail');
+        ->to('pages.words.detail-edit');
     }
 }; ?>
 
 <section x-data="{ showWordList: false }" x-on:click.outside="showWordList = false" class="position-relative">
     <!-- 検索バー -->
-    <input  type="text" wire:model.live="search" x-on:focus="showWordList = true" 
-        class="form-control" autocomplete="off"  placeholder="語句を検索...">
+    {{-- 
+    NOTE:
+    * form-controlはresouces/css/custom.cssでカスタマイズしているため使用に注意
+    --}}
+    <div class="input-group border rounded-2">
+        <input  type="text" wire:model.live="search" x-on:focus="showWordList = true" 
+            class="form-control py-1 fs-6" autocomplete="off">
+
+        <span class="input-group-text bg-transparent border-0">
+            <!-- 虫眼鏡マーク -->
+            <i class="bi bi-search"></i>
+        </span>
+    </div>
 
     <!-- 検索結果の表示リスト -->
     <article x-show="showWordList">
         @if ($this->search && $this->words->count() > 0)
-            <div class="card position-absolute w-100 z-1">
+            <div class="mt-1 card position-absolute w-100 z-1">
                 <ul class="list-group list-group-flush">
-
-                    @foreach ($this->wordColl as $word)
+                    @foreach ($this->words as $word)
                         <li wire:key="{{ $word->id }}" class="list-group-item">
-                            <a wire:click="showWordDetail({{ $word }})" class="text-dark text-decoration-none">
+                            <a wire:click="sendWord({{ $word }})" class="text-dark text-decoration-none">
                                 {{ $word->word_name }}
                             </a>
                         </li>
@@ -55,8 +65,8 @@ new #[Layout('layouts.words-app')] class extends Component
                 </ul>
             </div>
         <!--検索結果がないが、文字を入力しているときに実行-->
-        @elseif($this->search && $this->wordColl->count() === 0)
-            <div class="card position-absolute w-100 z-1">
+        @elseif($this->search && $this->words->count() === 0)
+            <div class="mt-1 card position-absolute w-100 z-1">
                 <div class="card-body">
                     <p class="mb-0 text-muted">語句が見つかりません。</p>
                 </div>

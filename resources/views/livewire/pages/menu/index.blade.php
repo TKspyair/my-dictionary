@@ -17,7 +17,7 @@ new #[Layout('layouts.words-app')] class extends Component {};
     --}}
         <!-- ヘッダー -->
         <div class="offcanvas-header">
-            <h5 class="offcanvas-title" id="offcanvas">メニュー</h5>
+            <span class="offcanvas-title fs-6 fw-bold" id="offcanvas">メニュー</span>
         </div>
 
         <!-- ボディ -->

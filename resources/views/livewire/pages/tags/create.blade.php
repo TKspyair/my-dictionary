@@ -12,7 +12,7 @@ use Livewire\Volt\Component;
 new #[Layout('layouts.words-app')] class extends Component 
 {
     //Tagテーブルのコレクション
-    public $tagColl;
+    public $tags;
 
     //新規作成中のTagインスタンスのプロパティ
     public $newTagName;
@@ -69,7 +69,7 @@ new #[Layout('layouts.words-app')] class extends Component
     #[On('update-tag-list')]
     public function loadTags(): void
     {
-        $this->tagColl = Auth::user()->tags()->orderBy('created_at', 'desc')->get();
+        $this->tags = Auth::user()->tags()->orderBy('created_at', 'desc')->get();
     }
 
     //タグ作成時の処理
@@ -103,7 +103,7 @@ new #[Layout('layouts.words-app')] class extends Component
     public function switchEdit(int $tagId): void
     {
         //idからTagインスタンスを取得
-        $editingTag = $this->tagColl->find($tagId);
+        $editingTag = $this->tags->find($tagId);
 
         if ($editingTag) {
             $this->editingTagId = $editingTag->id;
@@ -194,7 +194,7 @@ new #[Layout('layouts.words-app')] class extends Component
                         <!-- タグ一覧 -->
                         <article>
                             <ul class="list-group list-group-flush">
-                                @foreach ($this->tagColl as $tag)
+                                @foreach ($this->tags as $tag)
                                     <li class="list-group-item d-flex align-items-center" wire:key="{{ $tag->id }}">
                                         {{-- 編集中のタグが存在すれば表示 --}}
                                         @if ($this->editingTagId === $tag->id)

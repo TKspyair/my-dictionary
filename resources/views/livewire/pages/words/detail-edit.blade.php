@@ -10,9 +10,9 @@ use Livewire\Volt\Component;
 
 new #[Layout('layouts.words-app')] class extends Component 
 {
-    //======================================================================
-    // Property
-    //======================================================================
+//======================================================================
+// プロパティ
+//======================================================================
 
     # words.word-listから送信された語句インスタンスを格納
     public Word $word;
@@ -24,20 +24,22 @@ new #[Layout('layouts.words-app')] class extends Component
     public ?string $wordDescription = '';
 
     # $wordに紐づくtagsコレクション
-    public $checkedTagColl;
+    public $selectedTags;
 
-    public array $checkedTagIds = [];
+    public array $selectedTagIds = [];
 
-    # 初期読込時に実行
+//======================================================================
+// 初期化
+//======================================================================    
     public function mount()
     {
-        //nullだとfoeeach文がエラーを起こすため回避
-        $this->checkedTagColl = collect();
+        //nullだとfoeeach文がエラーを起こすため、空のコレクションを格納
+        $this->selectedTags = collect();
     }
 
-    //======================================================================
-    // バリデーションルール
-    //======================================================================
+//======================================================================
+// バリデーションルール
+//======================================================================
     protected function rules(): array
     {
         return [
@@ -62,89 +64,96 @@ new #[Layout('layouts.words-app')] class extends Component
         ];
     }
 
-    //======================================================================
-    // Event Listenner(イベントリスナー)
-    //======================================================================
-
-    /** openWordDetailModal()
-     * - words.words-listよりイベントを受け取り、実行
-     * - 引数のモデルインスタンスをクラスプロパティに代入
-     * - モーダルを開くイベントを発火
-     * empty()を使用しない理由 : empty() 引数が存在しないか、空のときにtrueを返す
-     * > モデルインスタンスはプロパティが空でも、オブジェクトが存在する(空とみなされないためempty()だとfalseになる)
-     * >> empty()のチェックをすり抜けてしまうため、nullチェック(![引数])を行う
-     */
-    #[On('send-word-instance')]
-    public function openWordDetailModal(Word $word): void
-    {
-        # ガード句
-        if (!$word) {
-            return;
-        }
-        $this->word = $word;
-        $this->wordName = $this->word->word_name;
-        $this->wordDescription = $this->word->description;
-        $this->checkedTagColl = $this->word->tags;
-        $this->dispatch('open-words-detail-and-edit-modal');
-    }
-
-    //======================================================================
-    // Exchange with tags.check-list
-    //======================================================================
-
-    public function sendCheckedTagIds()
-    {
-        # チェックしたTagインスタンスをidのみの配列にする
-        $this->checkedTagIds = $this->checkedTagColl->pluck('id')->all();
-
-        $this->dispatch('dispatch-checked-tag-ids', checkedTagIds: $this->checkedtagIds)->to('pages.tags.check-list');
-    }
-
-    #[On('dispatch-checked-tag-ids')]
-    public function loadCheckedTags(array $checkedTagIds)
-    {
-        # 引数がnullまたは空なら、処理を中断する
-        if (empty($checkedTagIds)) {
-            $this->checkedTagColl = collect(); //空のコレクションを返す
-            return;
-        }
-
-        # Tagコレクションの更新
-        $this->checkedTagColl = Tag::whereIn('id', $checkedTagIds)->get();
-    }
-
-    //======================================================================
+//======================================================================
+// メソッド
+//======================================================================
+    
+    //-----------------------------------------------------
     // CRUD機能
-    //======================================================================
+    //-----------------------------------------------------
+        # $wordの更新
+        public function updateWord(): void
+        {
+            $this->word->update([
+                'word_name' => $this->wordName,
+                'description' => $this->wordDescription,
+            ]);
 
-    public function updateWord(): void
-    {
-        $this->word->update([
-            'word_name' => $this->wordName,
-            'description' => $this->wordDescription,
-        ]);
+            // タグのリレーションを更新
+            $this->word->tags()->sync($this->selectedTags->pluck('id')->all());
+            /*sync(array id) : 引数で渡されたidの配列とword_tag(中間テーブル)のid同期する
+                > word_tag:[1,3] sync:[1,5] >> 更新された結果:[1,5]
+            */
 
-        // タグのリレーションを更新
-        $this->word->tags()->sync($this->checkedTagColl->pluck('id')->all());
-        /*sync(array id) : 引数で渡されたidの配列とword_tag(中間テーブル)のid同期する
-            > word_tag:[1,3] sync:[1,5] >> 更新された結果:[1,5]
-        */
+            # Wordコレクションの更新イベントを発火
+            $this->dispatch('update-words');
+        }
 
-        # Wordコレクションの更新
-        $this->dispatch('update-words');
-    }
+        # 語句データの削除
+        public function deleteWord(): void
+        {
+            # 現在編集中の語句をDBから削除
+            Auth::user()->words()->where('id', $this->word->id)->delete();
 
-    public function deleteWord(): void
-    {
-        # 現在編集中の語句をDBから削除
-        Auth::user()->words()->where('id', $this->word->id)->delete();
+            # 全モーダルを閉じる
+            $this->dispatch('close-all-modal');
 
-        # モーダルを閉じる
-        $this->dispatch('close-all-modal');
+            # Wordコレクションの更新
+            $this->dispatch('update-words');
+        }
 
-        # Wordコレクションの更新
-        $this->dispatch('update-words');
-    }
+    //-----------------------------------------------------
+    // イベントを受け取り、モーダルを開閉　words.words-list
+    //-----------------------------------------------------
+        /** openWordDetailModal()
+         * - words.words-listよりイベントを受け取り、実行
+         * - 引数のモデルインスタンスをクラスプロパティに代入
+         * - モーダルを開くイベントを発火
+         * empty()を使用しない理由 : empty() 引数が存在しないか、空のときにtrueを返す
+         * > モデルインスタンスはプロパティが空でも、オブジェクトが存在する(空とみなされないためempty()だとfalseになる)
+         * >> empty()のチェックをすり抜けてしまうため、nullチェック(![引数])を行う
+         */
+        # 語句のインスタンスを受け取り、その語句の詳細ページ(モーダル)を開く処理
+        #[On('send-word-instance')]
+        public function openWordDetailModal(Word $word): void
+        {
+            if (!$word) {
+                return;
+            }
+
+            $this->word = $word;
+            $this->wordName = $this->word->word_name;
+            $this->wordDescription = $this->word->description;
+            $this->selectedTags = $this->word->tags;
+            $this->dispatch('open-words-detail-and-edit-modal');
+        }
+
+    //-----------------------------------------------------
+    // タグ選択関連 tags.check-listとのみ連携
+    //-----------------------------------------------------
+        # 選択されたタグのidを配列型で渡す
+        public function sendSelectedTagIds()
+        {
+            # チェックしたTagインスタンスをidのみの配列にする
+            $this->selectedTagIds = $this->selectedTags->pluck('id')->all();
+
+            $this->dispatch('dispatch-selected-tag-ids', selectedTagIds: $this->selectedtagIds)
+                ->to('pages.tags.check-list');
+        }
+
+        # 選択されたタグのidを配列型で受け取り、コレクション型に変換する
+        #[On('dispatch-selected-tag-ids')]
+        public function loadSelectedTags(array $selectedTagIds)
+        {
+            # 引数がnullまたは空なら、処理を中断する
+            if (empty($selectedTagIds)) {
+                $this->selectedTags = collect(); //空のコレクションを返す
+                return;
+            }
+        
+            # Tagコレクションの更新
+            $this->selectedTags = Tag::whereIn('id', $selectedTagIds)->get();
+        }
 };
 ?>
 
@@ -227,9 +236,9 @@ new #[Layout('layouts.words-app')] class extends Component
                             <!-- タグ一覧 -->
                             <div class="d-flex">
                                 {{--  --}}
-                                @foreach ($this->checkedTagColl as $checkedTag)
-                                    <span wire:key="{{ $checkedTag->id }}" class="badge bg-secondary me-1">
-                                        {{ $checkedTag->tag_name }}
+                                @foreach ($this->selectedTags as $selectedTag)
+                                    <span wire:key="{{ $selectedTag->id }}" class="badge bg-secondary me-1">
+                                        {{ $selectedTag->tag_name }}
                                     </span>
                                 @endforeach
 
@@ -247,16 +256,16 @@ new #[Layout('layouts.words-app')] class extends Component
                                 <x-form-textarea wire:model="wordDescription" />
 
                                 <!-- タグ選択コンポーネントを開く -->
-                                <span x-on:click="$dispatch('open-tags-check-list')" wire:click="checkedTagIds">
+                                <span x-on:click="$dispatch('open-tags-check-list')" wire:click="selectedTagIds">
                                     タグ選択
                                 </span>
 
                                 <!-- チェックしたタグ一覧 -->
                                 <div class="d-flex">
 
-                                    @foreach ($this->checkedTagColl as $checkedTag)
-                                        <span class="badge bg-secondary me-1" wire:key="{{ $checkedTag->id }}">
-                                            {{ $checkedTag->tag_name }}
+                                    @foreach ($this->selectedTags as $selectedTag)
+                                        <span class="badge bg-secondary me-1" wire:key="{{ $selectedTag->id }}">
+                                            {{ $selectedTag->tag_name }}
                                         </span>
                                     @endforeach
 
@@ -285,4 +294,3 @@ new #[Layout('layouts.words-app')] class extends Component
         </div>
     </div>
 </section>
-

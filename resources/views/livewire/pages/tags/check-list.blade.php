@@ -2,80 +2,114 @@
 
 use App\Models\Tag;
 use Livewire\Volt\Component;
-use Livewire\Attributes\Layout; //#[Layout('layouts.words-app')]の使用
+use Livewire\Attributes\Layout; 
 use Livewire\Attributes\On;
 use Illuminate\Support\Facades\Log;
 
 new #[Layout('layouts.words-app')] class extends Component 
 {
-    //ユーザーのもつ全てのタグのコレクション
-    public $tagColl;
+
+//======================================================================
+// プロパティ
+//======================================================================
+
+    //ユーザーのもつ全てのTagコレクション
+    public $tags;
 
     //チェックしたタグのid
-    public $checkedTagIds = [];
+    public $selectedTagIds = [];
 
-    //初期読み込み時に実行
+//======================================================================
+// 初期化・更新
+//======================================================================
+    // 初期読み込み時に実行
     public function mount()
     {
-        $this->loadTagColl();
+        $this->loadTags();
     }
 
-    //　タグ一覧の更新
+    // タグ一覧の更新
     #[On('update-tag-list')]
-    public function loadTagColl(): void
+    public function loadTags(): void
     {
-        $this->tagColl = Auth::user()->tags()->orderBy('created_at', 'desc')->get();
+        $this->tags = Auth::user()->tags()->orderBy('created_at', 'desc')->get();
     }
 
-    //words.detail-and-editより
-    #[On('send-checked-tag-ids')]
-    public function setCheckedTagIds(array $checkedwordTagIds)
-    {
-        //受け取ったidを格納
-        $this->checkedTagIds = $checkedwordTagIds;
-    }
+//======================================================================
+// メソッド
+//======================================================================
+    //-----------------------------------------------------
+    // CRUD機能
+    //-----------------------------------------------------
+        # $selectedTagIdsの値が追加・削除(更新)されると、そのデータを配列で他ファイルに渡す
+        public function updatedSelectedTagIds()
+        {
+            $this->dispatch('send-selected-tag-ids', selectedTagIds: $this->selectedTagIds);
 
-    //$checkedTagIdsの更新時に実行 配列で他に渡す
-    public function updatedCheckedTagIds()
-    {
-        $this->dispatch('send-checked-tag-ids', checkedTagIds: $this->checkedTagIds);
-    }
+            /** 関連ファイル 
+             * words.create
+             * words.detail-edit
+            */
+        }
+
+    //-----------------------------------------------------
+    // 語句詳細・編集機能専用(words.detail-edit)
+    //-----------------------------------------------------
+        # 渡されたタグのidを受け取る
+        #[On('send-selected-tag-ids')]
+        public function setSelectedTagIds(array $selectedTagIds)
+        {
+            //受け取ったidを格納
+            $this->selectedTagIds = $selectedTagIds;
+
+            /** 関連ファイル
+             * words.detail-edit 
+            */
+        }
 };
 ?>
 
-<section x-data="{ showCheckList: false }" x-on:open-tags-check-list.window="showCheckList = true">
+<section x-data="{ showModal: false }" 
+    x-on:open-tags-check-list.window="showModal = true">
 
-    <div x-show="showCheckList">
-        <div class="modal d-block'" tabindex="-1">
+    <!-- モーダル部 -->
+    <div x-show="showModal">
+        <div class="modal d-block" tabindex="-1">
             <div class="modal-dialog modal-fullscreen">
                 <div class="modal-content">
-                    <!-- ヘッダー -->
+                    
+                    <!-- ヘッダー部 -->
                     <header class="modal-header d-flex align-items-center p-2">
+                        
                         <!--戻るボタン-->
-                        <button x-on:click="showCheckList = false" class="btn btn-link text-dark border-0 p-0 me-3">
-                            <i class="bi bi-arrow-left fs-4"></i>
-                        </button>
+                        <x-back-button/>
 
                         <h5 class="modal-title mb-0">タグ</h5>
+
                     </header>
 
-                    <!-- ボディ -->
+                    <!-- ボディ部 -->
                     <div class="modal-body">
 
                         <!-- チェックリスト -->
                         <article>
-                            @foreach ($this->tagColl as $tag)
+
+                            @foreach ($this->tags as $tag)
                                 <div class="form-check" wire:key="{{ $tag->id }}">
-                                    <!-- value属性でチェック時にチェックしたタグのIDをwire:modelに渡す -->
-                                    <input type="checkbox" wire:model.live="checkedTagIds" 
-                                        name="checkedTagIds[]" value="{{ $tag->id }}" id="{{ $tag->id }}"
+                                    <!-- 選択したタグのidをselectedTagIdsに格納する -->
+                                    <!-- value属性で選択したタグのidを値とし、wire:model.liveでselectedTagIdsに即時同期する -->
+                                    <input type="checkbox" wire:model.live="selectedTagIds" 
+                                        name="selectedTagIds[]" value="{{ $tag->id }}" id="{{ $tag->id }}"
                                         class="form-check-input">
+                                    
                                     <label for="{{ $tag->id }}" class="form-check-label">
                                         {{ $tag->tag_name }}
                                     </label>
                                 </div>
                             @endforeach
+
                         </article>
+
                     </div>
                 </div>
             </div>

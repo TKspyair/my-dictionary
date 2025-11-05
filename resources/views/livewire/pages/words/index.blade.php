@@ -8,14 +8,14 @@ new #[Layout('layouts.words-app')] class extends Component {};
 
 <div class="container-lg">
     
-    <!-- ヘッダー -->
-    <div class="d-flex mx-2 my-4 p-0">
+    <!-- ヘッダー部 -->
+    <div class="d-flex align-items-center mx-2 my-4 p-0">
 
         <!-- メニューボタン -->
         <div class="justify-content-start p-0">
             <button data-bs-toggle="offcanvas" data-bs-target="#menu-index-offcanvas"
-                class="btn btn-link text-dark p-0 border-0"> <!-- data-bs-targetで動作させたい要素のidを指定-->
-                <i class="bi bi-list fs-2"></i>
+                class="btn btn-link text-dark p-0 border-0">
+                <i class="bi bi-list fs-2 fw-bold"></i>
             </button>
         </div>
     
@@ -25,7 +25,7 @@ new #[Layout('layouts.words-app')] class extends Component {};
         </div>
     </div>
 
-    <!-- ボディ -->
+    <!-- ボディ部 -->
     <div>    
         <!--語句リスト-->
         <div class="m-4">
@@ -35,8 +35,8 @@ new #[Layout('layouts.words-app')] class extends Component {};
         <!--語句登録ボタン-->
         <div>
             <button x-on:click="$dispatch('open-words-create-modal')" 
-                class="fab-button btn btn-primary rounded-circle shadow-lg position-fixed bottom-0 end-0 m-4">
-                <i class="fas fa-plus"></i><!--「＋」マークの表示-->
+                class="position-fixed fab-button btn btn-primary rounded-circle shadow border-0" style="bottom: 60px; right: 25px;">
+                <i class="fas fa-plus"></i>
             </button>
         </div>
     </div>
