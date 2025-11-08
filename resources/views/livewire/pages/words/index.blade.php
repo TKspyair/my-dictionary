@@ -36,7 +36,7 @@ new #[Layout('layouts.words-app')] class extends Component {};
         <div>
             <button x-on:click="$dispatch('open-words-create-modal')" 
                 class="position-fixed fab-button btn btn-primary rounded-circle shadow border-0" style="bottom: 60px; right: 25px;">
-                <i class="fas fa-plus"></i>
+                <i class="bi bi-plus-lg"></i>
             </button>
         </div>
     </div>

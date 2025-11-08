@@ -1,4 +1,9 @@
+
 <?php
+/** TODO
+ * ログアウト機能の追加(ログインページなどの修正が現状難しいため)
+ * デザインの修正
+*/
 
 use App\Livewire\Forms\LoginForm;
 use App\Providers\RouteServiceProvider;
@@ -6,74 +11,83 @@ use Illuminate\Support\Facades\Session;
 use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
 
-new #[Layout('layouts.guest')] class extends Component
+new #[Layout('layouts.app')] class extends Component
 {
+    /** 
+     * LoginForm: my-dictionary\app\Livewire\Forms\LoginForm.php 参照
+     * 
+    */
     public LoginForm $form;
 
-    /**
-     * Handle an incoming authentication request.
-     */
+    # ログイン処理
     public function login(): void
     {
+        # バリデーションルールはLoginFormクラスに定義
         $this->validate();
 
+        # LoginFormクラスの認証処理
         $this->form->authenticate();
 
+        # セッションIDの生成
         Session::regenerate();
 
+        # 基本ページ(語句一覧ページ)にリダイレクト
         $this->redirect(RouteServiceProvider::HOME, navigate: true);
     }
 }; ?>
 
-<div>
-    <!-- Session Status -->
-    <x-auth-session-status class="mb-4" :status="session('status')" />
+<div class="container-lg">
+    <x-auth-session-status :status="session('status')" />
 
     <form wire:submit="login">
-        <!-- Email Address -->
-        <div>
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input wire:model="form.email" id="email" class="block mt-1 w-full" type="email" name="email"
-                required autofocus autocomplete="username" />
-            <x-input-error :messages="$errors->get('form.email')" class="mt-2" />
-        </div>
+        <div class="d-flex flex-column justify-content-center">
+            <!-- メールアドレス -->
+            <div>
+                <input wire:model="form.email" type="email" name="email"
+                    required autofocus autocomplete="username" placeholder="メールアドレス"/>
 
-        <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" :value="__('Password')" />
+                @error('form.email') 
+                    <div>{{ $message }}</div> 
+                @enderror
+            </div>
 
-            <x-text-input wire:model="form.password" id="password" class="block mt-1 w-full" type="password"
-                name="password" required autocomplete="current-password" />
+            <!-- パスワード -->
+            <div>
+                <input wire:model="form.password" type="password"
+                    name="password" required autocomplete="current-password" placeholder="パスワード"/>
 
-            <x-input-error :messages="$errors->get('form.password')" class="mt-2" />
-        </div>
+                @error('form.password') 
+                    <div>{{ $message }}</div> 
+                @enderror
+            </div>
 
-        <div class="flex items-center justify-between mt-4">
-            <!--ログイン状態の保持-->
-            <label for="remember" class="inline-flex items-center">
-                <input wire:model="form.remember" id="remember" type="checkbox"
-                    class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500" name="remember">
-                <span class="ms-2 text-sm text-gray-600">{{ __('Remember me') }}</span>
-            </label>
+            <!-- ログイン状態の保持 -->
+            <div>
+                <label for="remember">
+                    <input wire:model="form.remember" id="remember" type="checkbox" name="remember">
+                    <span>ログイン状態を保持する</span>
+                </label>
+            </div>
 
-            <!--パスワード再設定-->
-            <a class="inline-flex justify-end underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                href="{{ route('password.request') }}" wire:nvigate>
-                {{ __('Forgot your password?') }}
-            </a>
-        </div>
+            <!--  パスワードを忘れた場合-->
+            <div>
+                <a href="{{ route('password.request') }}" wire:navigate>
+                    パスワードを忘れた場合
+                </a>
+            </div>
 
-        <div class="flex items-center justify-end mt-4">
-            <!--アカウント登録ボタン-->
-            
-            <x-primary-button class="" href="{{ route('register') }}">
-                新規登録
-            </x-primary-button>
+            <!-- ボタン群 -->
+            <div>
+                <button type="button">
+                    <a href="{{ route('register') }}" wire:navigate>
+                        新規登録
+                    </a>
+                </button>
 
-            <!--ログインボタン-->
-            <x-primary-button class="ms-3">
-                {{ __('Log in') }}
-            </x-primary-button>
+                <button type="submit" class="bg-transparent border">
+                    ログイン
+                </button>
+            </div>
         </div>
     </form>
 </div>

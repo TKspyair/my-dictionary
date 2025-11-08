@@ -19,12 +19,7 @@
     
     <!--Noto Sans JP 日本語の表示に適し、フォントの太さ[400(標準),500(中)]、幅広い用途に使えるフォント-->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500&display=swap" rel="stylesheet">
-    <!--デザイン性がある、デザイン的なアクセントがあるフォント-->
-    <link href="https://fonts.googleapis.com/css2?family=Carter+One&display=swap" rel="stylesheet">
-
-    <!--Font Awesome アイコンフォントとSVGアイコンのライブラリ-->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-
+    
     <!-- Bootstrap icon-->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     
@@ -33,7 +28,9 @@
 </head>
 
 <body>
-    {{ $slot }}
+    <main>
+        {{ $slot }}
+    </main>
 </body>
 
 </html>
