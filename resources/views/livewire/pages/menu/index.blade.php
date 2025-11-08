@@ -1,9 +1,34 @@
 <?php
 
 use Livewire\Volt\Component;
-use Livewire\Attributes\Layout; //#[Layout('layouts.words-app')]の使用
+use Livewire\Attributes\Layout;
+use App\Livewire\Actions\Logout; 
 
-new #[Layout('layouts.words-app')] class extends Component {};
+new #[Layout('layouts.words-app')] class extends Component 
+{
+    # ログアウトを実行する　my-dictionary\app\Livewire\Actions\Logout.php
+    /** 依存性の注入(Dependency(依存性) Injyection(注入))
+     * あるクラスが必要とする依存オブジェクトを、クラスの外部から提供(注入)する手法
+     * ※依存性の注入を使用しない場合: new [クラス名()]で子クラスを作成し、メソッドを実行する
+     * 
+     **メソッドインジェクション(LaravelでのDI)
+     * 1 メソッドの引数に型ヒントとしてクラス名(例: Logout)を指定する
+     * 2 サービスコンテナが引数で指定されたクラスのインスタンスを引数(例: $logout)に代入する　
+     * ※　$logout = new App\Livewire\Actions\Logout();のような状態になる
+     * 3 引数をメソッドとして実行すると(例: $logout())、元のクラスの__invoke()が実行される
+     * ※invoke(): クラスが関数のように振舞えるようにするマジックメソッド
+     * 
+    */
+    public function logout(Logout $logout): void
+    {
+        
+        # 依存性の注入 で取得したLogoutアクションを実行
+        $logout(); 
+
+        // ログアウト後のリダイレクト
+        $this->redirect('/', navigate: true);
+    }
+};
 ?>
 
 <div class="container-fluid">
@@ -33,6 +58,13 @@ new #[Layout('layouts.words-app')] class extends Component {};
             <!--タグ一覧-->
             <div class="m-0 p-0">
                 @livewire('pages.tags.index')
+            </div>
+
+            <!-- ログアウトボタン -->
+            <div>
+                <button type="button" wire:click="logout">
+                    ログアウト
+                </button>
             </div>
         </div>
     </div>
