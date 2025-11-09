@@ -4,58 +4,72 @@ use Illuminate\Support\Facades\Password;
 use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
 
-new #[Layout('layouts.guest')] class extends Component
+new #[Layout('layouts.words-app')] class extends Component
 {
     public string $email = '';
 
-    /**
-     * Send a password reset link to the provided email address.
-     */
+    # パスワード再設定リンクの送信
     public function sendPasswordResetLink(): void
     {
         $this->validate([
             'email' => ['required', 'string', 'email'],
         ]);
 
-        # We will send the password reset link to this user. Once we have attempted
-        # to send the link, we will examine the response then see the message we
-        # need to show to the user. Finally, we'll send out a proper response.
+        /** Password::sendResetLink(array ['email' => $this->email],[コールバック関数])
+         * > 
+         * 1 第1引数の'email'(キー)からメールアドレス(値)を取得し、usersテーブルから該当のユーザーを検索する
+         * 2 検索成功時、一意で期限付きのリセットトークンを生成
+         * 3 生成したトークンとメールアドレス、タイムスタンプをDBのpassword_reset_tokensテーブルに保存する
+         * 4 パスワードリセットURLを生成し、そのURLを含むメールをユーザーのメアド宛に送信する
+        */
         $status = Password::sendResetLink(
             $this->only('email')
         );
 
+        #　ユーザー検索に失敗時、メールアドレスフィールドにエラーメッセージを関連させる
         if ($status != Password::RESET_LINK_SENT) {
             $this->addError('email', __($status));
 
             return;
         }
 
+        # メールアドレスフィールドのリセット
         $this->reset('email');
 
+        # 一時的なエラーメッセージを生成する
         session()->flash('status', __($status));
     }
 }; ?>
 
-<div>
-    <div class="mb-4 text-sm text-gray-600">
-        {{ __('Forgot your password? No problem. Just let us know your email address and we will email you a password reset link that will allow you to choose a new one.') }}
-    </div>
-
-    <!-- Session Status -->
-    <x-auth-session-status class="mb-4" :status="session('status')" />
-
-    <form wire:submit="sendPasswordResetLink">
-        <!-- Email Address -->
+<div class="conteiner-md">
+    <div class="d-flex flex-column justify-content-center align-items-center vh-100">
+        <!-- アプリアイコンの設定(仮) -->
         <div>
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input wire:model="email" id="email" class="block mt-1 w-full" type="email" name="email" required autofocus />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
+            <i class="bi bi-book fs-1"></i>
         </div>
 
-        <div class="flex items-center justify-end mt-4">
-            <x-primary-button>
-                {{ __('Email Password Reset Link') }}
-            </x-primary-button>
+        <!-- 注意書き -->
+        <div class="mt-4">
+            <span>ご登録いただいたメールアドレスを入力してください。<br>
+                パスワード設定用のURLをメールにて送信いたします。   
+            </span>
         </div>
-    </form>
+
+        <!-- Session Status -->
+        <x-auth-session-status class="m-0 p-0" :status="session('status')" />
+
+        <form class="mt-4" wire:submit="sendPasswordResetLink">
+            <!-- Email Address -->
+            <div>
+                <x-text-input type="e-mail" wire:model="email" class="border border-secondary" autofocus/>
+                <x-input-error :messages="$errors->get('email')" class="mt-2" />
+            </div>
+
+            <div class="d-flex justify-content-center mt-4">
+                <button type="submit" class="btn btn-primary">
+                    {{ __('Email Password Reset Link') }}
+                </button>
+            </div>
+        </form>
+    </div>
 </div>

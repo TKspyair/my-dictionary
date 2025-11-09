@@ -9,81 +9,75 @@ use Illuminate\Validation\Rules;
 use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
 
-new #[Layout('layouts.app')] class extends Component
+new #[Layout('layouts.words-app')] class extends Component 
 {
-    public string $name = '';
     public string $email = '';
     public string $password = '';
     public string $password_confirmation = '';
 
-    /**
-     * Handle an incoming registration request.
-     */
+    # 会員登録処理
     public function register(): void
     {
         $validated = $this->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
             'password' => ['required', 'string', 'confirmed', Rules\Password::defaults()],
         ]);
 
+        # 検証済みのパスワードをハッシュ化して再代入
         $validated['password'] = Hash::make($validated['password']);
 
-        event(new Registered($user = User::create($validated)));
+        /** $user = User::create($validated)
+         * > 新しいユーザーレコードを作成し、作成したユーザーレコードをモデルインスタンスとして$userに代入
+         ** new Registered(ユーザーモデルインスタンス)
+         *
+         */
+        event(new Registered(($user = User::create($validated))));
 
         Auth::login($user);
 
+        /** navigate: true: リダイレクトの際のフルページリロードを阻止し、DOMの変更された部分のみを更新する
+         * ※a要素に使用するwire:navigateと同じ機能(HOTWやTurbo-style-Naviigationという技術でほかの言語にも同様の機能が存在する)
+         */
         $this->redirect(RouteServiceProvider::HOME, navigate: true);
     }
 }; ?>
 
-<div>
-    <form wire:submit="register">
-        <!-- Name -->
-        <div>
-            <x-input-label for="name" :value="__('Name')" />
-            <x-text-input wire:model="name" id="name" class="block mt-1 w-full" type="text" name="name" required autofocus autocomplete="name" />
-            <x-input-error :messages="$errors->get('name')" class="mt-2" />
-        </div>
+<div class="container-md">
+    <form wire:submit.prevent="register">
+        <div class="d-flex flex-column justify-content-center align-items-center vh-100">
+            <!-- アプリアイコンの設定(仮) -->
+            <div>
+                <i class="bi bi-book fs-1"></i>
+            </div>
 
-        <!-- Email Address -->
-        <div class="mt-4">
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input wire:model="email" id="email" class="block mt-1 w-full" type="email" name="email" required autocomplete="username" />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
-        </div>
+            <!-- メールアドレス -->
+            <div class="mt-4">
+                <x-text-input type="email" wire:model="email" class="border border-secondary" autofocus
+                    autocomplete="username" placeholder="メールアドレス" />
+                <x-input-error :messages="$errors->get('email')" />
+            </div>
 
-        <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" :value="__('Password')" />
+            <!-- パスワード -->
+            <div class="mt-4">
+                <x-text-input type="password" wire:model="password" class="border border-secondary"
+                    autocomplete="new-password" placeholder="パスワード" />
+                <x-input-error :messages="$errors->get('password')" />
+            </div>
 
-            <x-text-input wire:model="password" id="password" class="block mt-1 w-full"
-                            type="password"
-                            name="password"
-                            required autocomplete="new-password" />
+            <!-- パスワード確認 -->
+            <div class="mt-4">
+                <x-text-input type="password" name="password_confirmation" wire:model="password_confirmation"
+                    class="border border-secondary" autocomplete="new-password" placeholder="パスワード確認" />
 
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
-        </div>
+                <x-input-error :messages="$errors->get('password_confirmation')" />
+            </div>
 
-        <!-- Confirm Password -->
-        <div class="mt-4">
-            <x-input-label for="password_confirmation" :value="__('Confirm Password')" />
-
-            <x-text-input wire:model="password_confirmation" id="password_confirmation" class="block mt-1 w-full"
-                            type="password"
-                            name="password_confirmation" required autocomplete="new-password" />
-
-            <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
-        </div>
-
-        <div class="flex items-center justify-end mt-4">
-            <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('login') }}" wire:navigate>
-                {{ __('Already registered?') }}
-            </a>
-
-            <x-primary-button class="ms-4">
-                {{ __('Register') }}
-            </x-primary-button>
+            <!-- アカウント作成ボタン -->
+            <div class="d-flex justify-content-center mt-4">
+                <x-submit-button>
+                    {{ __('Register') }}
+                </x-submit-button>
+            </div>
         </div>
     </form>
 </div>

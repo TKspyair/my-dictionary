@@ -27,6 +27,10 @@
     @vite(['resources/js/app.js','resources/css/app.css'])
 </head>
 
+{{-- 
+* レイアウト関連のクラスはすべて子ファイルで設定する
+> ページごとに最適な幅を設定するため 
+--}}
 <body>
     <main>
         {{ $slot }}

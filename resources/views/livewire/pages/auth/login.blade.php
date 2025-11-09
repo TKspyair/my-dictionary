@@ -1,7 +1,7 @@
 
 <?php
 /** TODO
- * ログアウト機能の追加(ログインページなどの修正が現状難しいため)
+ * アプリアイコンの設定
  * デザインの修正
 */
 
@@ -11,12 +11,9 @@ use Illuminate\Support\Facades\Session;
 use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
 
-new #[Layout('layouts.app')] class extends Component
+new #[Layout('layouts.words-app')] class extends Component
 {
-    /** 
-     * LoginForm: my-dictionary\app\Livewire\Forms\LoginForm.php 参照
-     * 
-    */
+    # LoginFormクラスのインスタンス化(バリデーションや認証メソッドが使用できるようになる)
     public LoginForm $form;
 
     # ログイン処理
@@ -36,15 +33,32 @@ new #[Layout('layouts.app')] class extends Component
     }
 }; ?>
 
-<div class="container-lg">
+<div class="container-md">
+    <!-- セッションステータス(ログイン成功メッセージなど)を表示する -->
+    {{--
+    * session('status')の引数を:statusに代入 
+    ※「:」はBladeテンプレートにおいて動的な値を設定するための特別な記号 
+    --}}
     <x-auth-session-status :status="session('status')" />
 
     <form wire:submit="login">
-        <div class="d-flex flex-column justify-content-center">
-            <!-- メールアドレス -->
+        {{-- 
+        * flex-column: Flexboxの主軸を垂直方向にする(軸が90度回転する)　
+        > 例　 d-flexのみ: justify-content(水平方向の配置) →　flex-column適用: justify-content(垂直方向の配置)
+
+        * vh-100: 親要素の高さを表示画面の大きさに設定
+        ※ここではフォームを囲うdiv要素に適用することでフォーム要素を画面中央に配置することに成功している
+        --}}
+        <div class="d-flex flex-column justify-content-center align-items-center vh-100">
+            <!-- アプリアイコンの設定(仮) -->
             <div>
-                <input wire:model="form.email" type="email" name="email"
-                    required autofocus autocomplete="username" placeholder="メールアドレス"/>
+                <i class="bi bi-book fs-1"></i>
+            </div>
+
+            <!-- メールアドレス -->
+            <div class="mt-4">
+                <input  type="email" name="email" class="border border-secondary" wire:model="form.email"
+                     autofocus autocomplete="username" placeholder="メールアドレス"/>
 
                 @error('form.email') 
                     <div>{{ $message }}</div> 
@@ -52,41 +66,34 @@ new #[Layout('layouts.app')] class extends Component
             </div>
 
             <!-- パスワード -->
-            <div>
-                <input wire:model="form.password" type="password"
-                    name="password" required autocomplete="current-password" placeholder="パスワード"/>
+            <div class="mt-4">
+                <input type="password" name="password" class="border border-secondary" wire:model="form.password" 
+                     autocomplete="current-password" placeholder="パスワード"/>
 
                 @error('form.password') 
                     <div>{{ $message }}</div> 
                 @enderror
-            </div>
-
-            <!-- ログイン状態の保持 -->
-            <div>
-                <label for="remember">
-                    <input wire:model="form.remember" id="remember" type="checkbox" name="remember">
-                    <span>ログイン状態を保持する</span>
-                </label>
-            </div>
-
-            <!--  パスワードを忘れた場合-->
-            <div>
-                <a href="{{ route('password.request') }}" wire:navigate>
-                    パスワードを忘れた場合
-                </a>
-            </div>
-
-            <!-- ボタン群 -->
-            <div>
-                <button type="button">
-                    <a href="{{ route('register') }}" wire:navigate>
-                        新規登録
+                <!--  パスワードを忘れた場合-->
+                <div class="mt-1">
+                    <a href="{{ route('password.request') }}" wire:navigate>
+                        パスワードを忘れた場合
                     </a>
-                </button>
+                </div>
+            </div>
+            
+            <!-- ログイン状態の保持 -->
+            <div class="mt-2">
+                <label for="remember">
+                    <input wire:model="form.remember" id="remember" type="checkbox">
+                    <span>ログイン状態を保持する</span>
+                </label> 
+            </div>
 
-                <button type="submit" class="bg-transparent border">
+            <!-- ログインボタン -->
+            <div class="mt-4">
+                <x-submit-button>
                     ログイン
-                </button>
+                </x-submit-button>
             </div>
         </div>
     </form>

@@ -1,5 +1,5 @@
 <?php
-
+//TODO: ログアウトボタンの配置
 use Livewire\Volt\Component;
 use Livewire\Attributes\Layout;
 use App\Livewire\Actions\Logout; 
@@ -46,7 +46,7 @@ new #[Layout('layouts.words-app')] class extends Component
         </div>
 
         <!-- ボディ -->
-        <div class="offcanvas-body">
+        <div class="offcanvas-body position-relative">
 
             <!--タグメニュー-->
             <div class="d-flex justify-content-between align-text-center m-1">
@@ -61,8 +61,8 @@ new #[Layout('layouts.words-app')] class extends Component
             </div>
 
             <!-- ログアウトボタン -->
-            <div>
-                <button type="button" wire:click="logout">
+            <div class="position-absolute start-50 translate-middle-x" style="bottom: 50px;">
+                <button type="button"  class="btn btn-secondary" wire:click="logout">
                     ログアウト
                 </button>
             </div>

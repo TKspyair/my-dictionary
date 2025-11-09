@@ -6,7 +6,10 @@ use Livewire\Attributes\Layout; //#[Layout('layouts.words-app')]の使用
 new #[Layout('layouts.words-app')] class extends Component {};
 ?>
 
-<div class="container-lg">
+{{-- 
+* container-md: スマホで全幅表示、タブレット以上で固定幅表示
+--}}
+<div class="container-md">
     
     <!-- ヘッダー部 -->
     <div class="d-flex align-items-center mx-2 my-4 p-0">

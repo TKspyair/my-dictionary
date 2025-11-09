@@ -1,6 +1,4 @@
 <?php
-
-
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 
@@ -16,15 +14,6 @@ Route::get('/', function () {
         return redirect()->route('login');
     }
 });
-
-
-Route::view('dashboard', 'dashboard')
-    ->middleware(['auth', 'verified'])
-    ->name('dashboard');
-
-Route::view('profile', 'profile')
-    ->middleware(['auth'])
-    ->name('profile');
 
 
 //web.php内部でauth.phpを読み込むことで、web.phpに適用されているミドルウェアなどを適用させる
