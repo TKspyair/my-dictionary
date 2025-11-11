@@ -1,5 +1,8 @@
 <?php
 
+/** AuthenticationTest: Livewire Voltで構築されたログイン機能のテストクラス
+ * 
+*/
 namespace Tests\Feature\Auth;
 
 use App\Models\User;

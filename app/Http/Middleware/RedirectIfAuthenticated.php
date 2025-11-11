@@ -20,16 +20,17 @@ public function handle(Request $request, Closure $next, ...): Response
     # handle() : Middlewarクラスのメソッド、リクエストの検証
     # $guards : web、api等の認証ガードの種類を受け取る
     {
-        $guards = empty($guards) ? [null] : $guards; #三項演算子「条件式 ? true : false」
+        $guards = empty($guards) ? [null] : $guards; 
 
-        #ユーザーが認証済みならリダイレクトする
+        #ユーザーが認証済みなら、語句一覧ページにリダイレクトする
+        # ルーティング先の定義: my-dictionary\app\Providers\RouteServiceProvider.php
         foreach ($guards as $guard) {
             if (Auth::guard($guard)->check()) {
                 return redirect(RouteServiceProvider::HOME);
             }
         }
         
-        #ユーザーが認証済みでなければ、次の処理に移行
+        #ユーザーが未認証なら、未認証ユーザー用のルーティングに移行　
         return $next($request);
         #$next():PHPのクロージャ(無名関数の一種)、引数を次の処理に渡す
     }

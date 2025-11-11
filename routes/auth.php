@@ -2,28 +2,20 @@
 
 use App\Http\Controllers\Auth\VerifyEmailController;
 use Illuminate\Support\Facades\Route;
-use Livewire\Volt\Volt; // 単一ファイルでLivewireコンポーネントから直接ルートを定義できる
+use Livewire\Volt\Volt; 
 
-Route::middleware('guest')->group(function () {
 
-    Volt::route('/', 'pages.auth.login')
-        ->name('login');
-    /*
-    Volt::route('URI', 'Livewireコンポーネント名'): Livewire コンポーネントを特定の URI に紐づける
-    ->name('ルート名')：route()を使って、このルート名でURLを生成できる(URLが変更されてもルートを書き換える必要がない)
-    */
-
-    Volt::route('register', 'pages.auth.register')
-        ->name('register');
-        
-    Volt::route('forgot-password', 'pages.auth.forgot-password')
-        ->name('password.request');
-
-    Volt::route('reset-password/{token}', 'pages.auth.reset-password')
-        ->name('password.reset');
-});
-
+# 'auth' ユーザーが認証済みの場合のルート定義
+# my-dictionary\app\Http\Middleware\Authenticate.php
+/**
+ * 未認証  　→　新規登録ページ('register')にリダイレクト ※my-dictionary\app\Http\Middleware\Authenticate.phpに定義
+ * 認証済み　→　HTTPリクエストと合致する以下のルートにリダイレクト
+ * ※認証チェック自体はMiddlewareクラスに定義　Illuminate\Auth\Middleware
+ */
 Route::middleware('auth')->group(function () {
+    Volt::route('word-index', 'pages.words.index')
+        ->name('word-index'); 
+
     Volt::route('verify-email', 'pages.auth.verify-email')
         ->name('verification.notice');
 
@@ -33,7 +25,33 @@ Route::middleware('auth')->group(function () {
 
     Volt::route('confirm-password', 'pages.auth.confirm-password')
         ->name('password.confirm');
+});
 
-    Volt::route('word-index', 'pages.words.index')
-        ->name('word-index'); 
+# guest: ユーザーが未認証の場合のルート定義
+# my-dictionaru\app\Http\Middleware\RedirectIfAuthenticated::class)
+Route::middleware('guest')->group(function () {
+
+    # 未認証の場合のルートページ
+    # 新規登録・ログインページ
+    Volt::route('/', 'pages.auth.register-login')
+        ->name('register-login');
+        
+    # パスワードを忘れたページ
+    Volt::route('forgot-password', 'pages.auth.forgot-password')
+        ->name('password.request');
+
+    # パスワードリセットページ
+    Volt::route('reset-password/{token}', 'pages.auth.reset-password')
+        ->name('password.reset');
+
+    //-----------------------------------------------------
+    // テスト用ルーティング: モーダルとして呼び出すページだが、機能テスト用にルート定義する
+    //-----------------------------------------------------
+    # 新規登録ページ(テスト用)
+    Volt::route('register', 'pages.auth.register')
+        ->name('register');
+
+    # ログインページ(テスト用)
+    Volt::route('login', 'pages.auth.login')
+        ->name('login');
 });

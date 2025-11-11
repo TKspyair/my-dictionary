@@ -1,4 +1,9 @@
 <?php
+/**  RegistrationTest: Livewire Voltで構築されたユーザー登録機能の検証(Laravelの機能テストファイルの一つ)
+ * テストではVoltコンポーネント内のロジック部分のみを検証
+ * > 「pages.auth.register」は「pages.auth.register－login」から呼び出される新規登録用の子コンポーネントとして扱われるが、
+ *    ロジックはpages.auth.registerにあるため指定先は変更しなくてもよい
+ */
 
 namespace Tests\Feature\Auth;
 

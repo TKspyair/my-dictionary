@@ -1,20 +1,14 @@
 
-
 {{-- 
 * デフォルトでtype="text"を適用
 * > type属性を指定したい場合は、呼び出し元で定義
 * form-controlはCSSでカスタム済み resouces/css/app.css
 --}}
-<input
-    {{ $attributes
-    ->class([
-        'is-invalid' => $attributes->has('wire:model') && $errors->has($attributes->get('wire:model')),])
-    ->merge(['class' => 'form-control']) }}
->
+<input {{ $attributes->merge(['class' => 'form-control']) }}>
 
-@if ($message)
+@if ($attributes->has('wire:model'))
     @error($attributes->get('wire:model'))
-        <div class="invalid-feedback">
+        <div {{ $attributes->merge(['class' => 'position-absolute start-0 top-100 fs-6 text-danger list-unstyled']) }}>
             {{ $message }}
         </div>
     @enderror

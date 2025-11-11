@@ -1,5 +1,9 @@
 <?php
-
+/** verify-email.blade.php: ユーザーのメールアドレスが有効か確認する処理を扱う
+ * 
+ * 
+ * 
+*/
 use App\Livewire\Actions\Logout;
 use App\Providers\RouteServiceProvider;
 use Illuminate\Support\Facades\Auth;
@@ -7,27 +11,36 @@ use Illuminate\Support\Facades\Session;
 use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
 
-new #[Layout('layouts.guest')] class extends Component
+new #[Layout('layouts.words-app')] class extends Component
 {
-    /**
-     * Send an email verification notification to the user.
-     */
+    /** sendVerifycation()
+     * hasVerifycation(): メール認証が完了しているかのチェック
+     * redirectIntended(): インテンデッドURLにリダイレクトする(デフォルト値はインテンデッドURLが存在しないときのもの) ※intended: 意図された
+     * > つまり、メール認証済みならこのファイルの処理は終了する
+     * 
+     * ※インテンデッドURL: セッションに保存される、未認証ユーザーが本来アクセスしようとしていたURL
+     * > ユーザー認証が必要なページに未認証状態でアクセスしようとした場合、
+     *   Laravelのauthミドルウェアはそのリクエストをとらえ、ユーザーを(pages.auth.register-login)にリダイレクトし、認証を促す
+     *   その際にインテンデッドURLがセッションに保存される
+     *    
+     * 　
+    */
     public function sendVerification(): void
     {
+        # メール認証成功時、pages.words.indexにリダイレクトし、このファイルの処理を終了する
         if (Auth::user()->hasVerifiedEmail()) {
             $this->redirectIntended(default: RouteServiceProvider::HOME, navigate: true);
 
             return;
         }
 
+        # メール認証失敗時、ユーザーにメールアドレス認証のための通知メールを送信する
         Auth::user()->sendEmailVerificationNotification();
 
         Session::flash('status', 'verification-link-sent');
     }
 
-    /**
-     * Log the current user out of the application.
-     */
+    # ログアウト処理
     public function logout(Logout $logout): void
     {
         $logout();
@@ -42,7 +55,7 @@ new #[Layout('layouts.guest')] class extends Component
     </div>
 
     @if (session('status') == 'verification-link-sent')
-        <div class="mb-4 font-medium text-sm text-green-600">
+        <div class="mb-4 font-medium text-sm text-green-600"> 
             {{ __('A new verification link has been sent to the email address you provided during registration.') }}
         </div>
     @endif

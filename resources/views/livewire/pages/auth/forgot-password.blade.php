@@ -60,9 +60,8 @@ new #[Layout('layouts.words-app')] class extends Component
 
         <form class="mt-4" wire:submit="sendPasswordResetLink">
             <!-- Email Address -->
-            <div>
-                <x-text-input type="e-mail" wire:model="email" class="border border-secondary" autofocus/>
-                <x-input-error :messages="$errors->get('email')" class="mt-2" />
+            <div class="position-relative">
+                <x-input-error type="e-mail" wire:model="email" autofocus/>
             </div>
 
             <div class="d-flex justify-content-center mt-4">

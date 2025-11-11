@@ -41,10 +41,8 @@ new #[Layout('layouts.words-app')] class extends Component
     <form wire:submit="confirmPassword">
         <!-- Password -->
         <div>
-            <x-text-input wire:model="password" class="" type="password" name="password"
-                required autocomplete="current-password" />
-
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
+            <x-inout-error wire:model="password" type="password"
+                autocomplete="current-password" />
         </div>
 
         <div class="flex justify-end mt-4">

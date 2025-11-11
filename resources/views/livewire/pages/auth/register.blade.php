@@ -7,14 +7,21 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\On;
 use Livewire\Volt\Component;
 
 new #[Layout('layouts.words-app')] class extends Component 
 {
+//======================================================================
+// プロパティ
+//======================================================================
     public string $email = '';
     public string $password = '';
     public string $password_confirmation = '';
 
+//======================================================================
+// メソッド
+//======================================================================
     # 会員登録処理
     public function register(): void
     {
@@ -40,44 +47,53 @@ new #[Layout('layouts.words-app')] class extends Component
          */
         $this->redirect(RouteServiceProvider::HOME, navigate: true);
     }
+
+    # フォームをクリア
+    /** 
+     * resetValidation()(Livewire): バリデーションのエラーメッセージをクリアする
+     * reset('プロパティ名'): プロパティを初期値にリセットする
+    */
+    #[On('clear-form-register')]
+    public function clearForm()
+    {
+        $this->reset(['email', 'password', 'password_confirmation']);
+        $this->resetValidation();
+    }
+
 }; ?>
 
-<div class="container-md">
+<section class="d-flex flex-grow flex-column justify-content-center h-100">
     <form wire:submit.prevent="register">
-        <div class="d-flex flex-column justify-content-center align-items-center vh-100">
+        <div class="d-flex flex-column justify-content-center align-items-center">
             <!-- アプリアイコンの設定(仮) -->
             <div>
                 <i class="bi bi-book fs-1"></i>
             </div>
 
             <!-- メールアドレス -->
-            <div class="mt-4">
-                <x-text-input type="email" wire:model="email" class="border border-secondary" autofocus
-                    autocomplete="username" placeholder="メールアドレス" />
-                <x-input-error :messages="$errors->get('email')" />
+            <div class="mt-4 position-relative">
+                <x-input-error type="email" wire:model="email" 
+                    autofocus autocomplete="username" placeholder="メールアドレス" />
             </div>
 
             <!-- パスワード -->
-            <div class="mt-4">
-                <x-text-input type="password" wire:model="password" class="border border-secondary"
+            <div class="mt-5 position-relative">
+                <x-input-error type="password" wire:model="password"
                     autocomplete="new-password" placeholder="パスワード" />
-                <x-input-error :messages="$errors->get('password')" />
             </div>
 
             <!-- パスワード確認 -->
-            <div class="mt-4">
-                <x-text-input type="password" name="password_confirmation" wire:model="password_confirmation"
-                    class="border border-secondary" autocomplete="new-password" placeholder="パスワード確認" />
-
-                <x-input-error :messages="$errors->get('password_confirmation')" />
+            <div class="mt-5 position-relative">
+                <x-input-error type="password" wire:model="password_confirmation"
+                    autocomplete="new-password" placeholder="パスワード確認" />
             </div>
 
             <!-- アカウント作成ボタン -->
-            <div class="d-flex justify-content-center mt-4">
+            <div class="d-flex justify-content-center mt-5">
                 <x-submit-button>
                     {{ __('Register') }}
                 </x-submit-button>
             </div>
         </div>
     </form>
-</div>
+</section>

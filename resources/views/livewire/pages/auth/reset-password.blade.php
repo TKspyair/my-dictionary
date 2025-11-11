@@ -83,7 +83,7 @@ new #[Layout('layouts.words-app')] class extends Component
          * > エラーメッセージをフォームフィールドに関連付けて表示する
          * __('文字列'): 文字列を現在のアプリの設定言語に翻訳し取得する
         */
-        # 検証失敗時、メールアドレスフィールドにエラーメッセージを関連付けて表示する　※バリデーションエラーとは別のため注意
+        # 検証失敗時、メールアドレスフィールドにエラーメッセージを関連付けて表示する　※このエラーメッセージはバリデーションエラーと同じように$errorsに格納される
         if ($status != Password::PASSWORD_RESET) {
             $this->addError('email', __($status));
             
@@ -99,7 +99,7 @@ new #[Layout('layouts.words-app')] class extends Component
         Session::flash('status', __($status));
 
         #? ログインページにリダイレクトし、Livewireのソフトナビゲーションを有効化
-        $this->redirectRoute('login', navigate: true);
+        $this->redirectRoute('register-login', navigate: true);
     }
 }; ?>
 
@@ -112,25 +112,21 @@ new #[Layout('layouts.words-app')] class extends Component
 
         <form wire:submit="resetPassword">
             <!-- メールアドレス -->
-            <div class="mt-4">
-                <x-text-input type="email" wire:model="email"
+            <div class="mt-4 position-relative">
+                <x-input-error type="email" wire:model="email"
                     autofocus autocomplete="username" placeholder="メールアドレス" />
-                <x-input-error :messages="$errors->get('email')"/>
             </div>
 
             <!-- パスワード -->
-            <div class="mt-4">
-                <x-text-input type="password" wire:model="password" 
+            <div class="mt-4 position-relative">
+                <x-input-error type="password" wire:model="password" 
                     autocomplete="new-password" placeholder="パスワード"/>
-                <x-input-error :messages="$errors->get('password')" />
             </div>
 
             <!-- パスワード確認 -->
-            <div class="mt-4">
-                <x-text-input type="password"  wire:model="password_confirmation"
+            <div class="mt-4 position-relative">
+                <x-input-error type="password"  wire:model="password_confirmation"
                     autocomplete="new-password" placeholder="パスワード確認"/>
-
-                <x-input-error :messages="$errors->get('password_confirmation')"/>
             </div>
 
             <!-- パスワードリセット確定ボタン -->
