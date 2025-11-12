@@ -79,7 +79,7 @@ new #[Layout('layouts.words-app')] class extends Component
             <!-- パスワード -->
             <div class="mt-5 position-relative">
                 <x-input-error type="password" wire:model="password"
-                    autocomplete="new-password" placeholder="パスワード" />
+                    autocomplete="new-password" placeholder="パスワードは8文字以上" />
             </div>
 
             <!-- パスワード確認 -->

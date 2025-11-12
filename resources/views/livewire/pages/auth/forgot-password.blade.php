@@ -58,13 +58,13 @@ new #[Layout('layouts.words-app')] class extends Component
         <!-- Session Status -->
         <x-auth-session-status class="m-0 p-0" :status="session('status')" />
 
-        <form class="mt-4" wire:submit="sendPasswordResetLink">
+        <form wire:submit="sendPasswordResetLink">
             <!-- Email Address -->
-            <div class="position-relative">
-                <x-input-error type="e-mail" wire:model="email" autofocus/>
+            <div class="position-relative mt-4">
+                <x-input-error type="e-mail" wire:model="email" autofocus placeholder="メールアドレス"/>
             </div>
 
-            <div class="d-flex justify-content-center mt-4">
+            <div class="d-flex justify-content-center mt-5">
                 <button type="submit" class="btn btn-primary">
                     {{ __('Email Password Reset Link') }}
                 </button>

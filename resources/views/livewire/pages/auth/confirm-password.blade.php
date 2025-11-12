@@ -41,7 +41,7 @@ new #[Layout('layouts.words-app')] class extends Component
     <form wire:submit="confirmPassword">
         <!-- Password -->
         <div>
-            <x-inout-error wire:model="password" type="password"
+            <x-input-error wire:model="password" type="password"
                 autocomplete="current-password" />
         </div>
 

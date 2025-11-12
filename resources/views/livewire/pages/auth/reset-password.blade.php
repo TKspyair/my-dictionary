@@ -118,19 +118,19 @@ new #[Layout('layouts.words-app')] class extends Component
             </div>
 
             <!-- パスワード -->
-            <div class="mt-4 position-relative">
+            <div class="mt-5 position-relative">
                 <x-input-error type="password" wire:model="password" 
-                    autocomplete="new-password" placeholder="パスワード"/>
+                    autocomplete="new-password" placeholder="パスワードは8文字以上"/>
             </div>
 
             <!-- パスワード確認 -->
-            <div class="mt-4 position-relative">
+            <div class="mt-5 position-relative">
                 <x-input-error type="password"  wire:model="password_confirmation"
                     autocomplete="new-password" placeholder="パスワード確認"/>
             </div>
 
             <!-- パスワードリセット確定ボタン -->
-            <div class="d-flex justify-content-center mt-4">
+            <div class="d-flex justify-content-center mt-5">
                 <x-submit-button>
                     {{ __('Reset Password') }} 
                 </x-submit-button>
