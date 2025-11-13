@@ -7,15 +7,14 @@ use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
-    /**
-     * Seed the application's database.
-     */
+
     public function run(): void
     {
-        // \App\Models\User::factory(10)->create();
-
-        // \App\Models\User::factory()->create([
-        //     'email' => 'test@example.com',
-        // ]);
+        # 以下のシーダーを実行(テストユーザーを作成)
+        $this->call([
+            TestUserSeeder::class, 
+            WordSeeder::class,
+            TagSeeder::class,
+        ]);
     }
 }
