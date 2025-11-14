@@ -1,5 +1,5 @@
 ## アプリ名
-my-dictionary
+my-dictionary\
 https://my-dictionary.click
 
 ## 概要
@@ -52,8 +52,8 @@ https://github.com/user-attachments/assets/905fb598-6e16-459c-90d8-5398ec8f7fe6
 https://github.com/user-attachments/assets/487d66f2-e1f5-4407-a0c5-26651358f4d8
 
 ## 制作者
-[Qiita]\
+Qiita\
 https://qiita.com/tkworking2003
 
-[Github]\
+Github\
 https://github.com/TKspyair/my-dictionary.git
