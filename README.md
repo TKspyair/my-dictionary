@@ -4,12 +4,11 @@ https://my-dictionary.click
 
 ## 概要
 自分で作る辞書
-初めて触れる分野の勉強や資格勉強など、新たな言葉を覚えることの多い方向け
-※スマホで使用することを前提のレイアウトに調整しています。
-　タブレット以上の幅で使用する際はレイアウト崩れますので、ご注意ください。
+初めて触れる分野の勉強や資格勉強など、新たな言葉を覚えることの多い方向け\
+※スマホで使用することを前提のレイアウトに調整しています。タブレット以上の幅で使用する際はレイアウト崩れます。
 
 ## 機能
-語句を記録するうえで最低限の機能に絞って実装しています。
+語句を記録するうえで最低限の機能に絞って実装しています。\
 画像などを記録したい方は、別のアプリを使うことを推奨します。
 
 ### 認証関連
@@ -43,18 +42,18 @@ https://my-dictionary.click
 
 ## 要件定義書
 
-- 本番環境構築図(AWS)
+- 本番環境構築図(AWS)\
 https://github.com/user-attachments/assets/bce56537-e316-42fc-b03f-10c94ec97b1b
 
-- 画面遷移図
+- 画面遷移図\
 https://github.com/user-attachments/assets/905fb598-6e16-459c-90d8-5398ec8f7fe6
 
-- ER図
+- ER図\
 https://github.com/user-attachments/assets/487d66f2-e1f5-4407-a0c5-26651358f4d8
 
 ## 制作者
-[Qiita]
+[Qiita]\
 https://qiita.com/tkworking2003
 
-[Github]
+[Github]\
 https://github.com/TKspyair/my-dictionary.git
