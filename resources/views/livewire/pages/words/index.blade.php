@@ -10,9 +10,9 @@ new #[Layout('layouts.words-app')] class extends Component {};
 * container-md: スマホで全幅表示、タブレット以上で固定幅表示
 --}}
 <div class="container-md">
-    
+
     <!-- ヘッダー部 -->
-    <div class="d-flex align-items-center mx-2 my-4 p-0">
+    <header class="d-flex align-items-center mx-2 my-4 p-0">
 
         <!-- メニューボタン -->
         <div class="justify-content-start p-0">
@@ -26,7 +26,7 @@ new #[Layout('layouts.words-app')] class extends Component {};
         <div class="flex-grow-1 ms-3 me-4 p-0 ">
             @livewire('pages.words.search-word')
         </div>
-    </div>
+    </header>
 
     <!-- ボディ部 -->
     <div>    

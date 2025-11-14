@@ -103,51 +103,82 @@
     ビュー
 //////////////-->
 
-<!--***************
-        input要素
-    *******************-->
-{{-- 
-    ** 必須
-    * type: 入力の形式と種類を決定 ※デフォルト値: type="text"
-    * name: サーバーに送信されるデータのキー(名前)を定義
-    * value: 入力フィールドの初期値やtype="submit"で送信される値を定義
-    ※wire:modelはnameとvalueの機能を併せ持つ
-    * id: 要素への一意の識別子を定義する
+    <!--***************
+            input要素
+        *******************-->
+    {{-- 
+        ** 必須
+        * type: 入力の形式と種類を決定 ※デフォルト値: type="text"
+        * name: サーバーに送信されるデータのキー(名前)を定義
+        * value: 入力フィールドの初期値やtype="submit"で送信される値を定義
+        ※wire:modelはnameとvalueの機能を併せ持つ
+        * id: 要素への一意の識別子を定義する
 
-    ** 任意
-    * placeholder: 入力フィールドがからの時に表示される薄い文字を設定
-    * required: フロントエンド
-    * autofocus: ページがロードされたときに、自動的に指定のフィールドにフォーカスする
-    * autocomplete: ブラウザの自動補完機能を制御する
-    > ユーザーが過去に入力したデータや個人情報を候補として表示する 
-    --}}
+        ** 任意
+        * placeholder: 入力フィールドがからの時に表示される薄い文字を設定
+        * required: フロントエンド
+        * autofocus: ページがロードされたときに、自動的に指定のフィールドにフォーカスする
+        * autocomplete: ブラウザの自動補完機能を制御する
+        > ユーザーが過去に入力したデータや個人情報を候補として表示する 
+        --}}
+
+    <!--**********************
+        フラッシュメッセージ
+    ************************-->
+    {{-- ロジック部: イベントの送信とフラッシュメッセージの種類の指定 --}}
+    <?php
+        $this->dispatch('flash-message', message: '空のメモを削除しました', type: 'dark');
+    ?>
+
+    {{-- ビュー部分: イベントの受信とフラッシュメッセージの表示  --}}
+    <!-- フラッシュメッセージ機能 -->
+    <div class="position-fixed top-0 start-50 translate-middle-x mt-3 z-3" style="width: 95%;" 
+        x-data="{ showFlashMessage: false, message: '', type: '' }"
+        x-show="showFlashMessage"
+        x-init="
+        {{-- フラッシュメッセージイベントを受け取る --}}
+        window.addEventListener('flash-message', e => {
+            message = e.detail.message;
+            type = e.detail.type
+            showFlashMessage = true;
+
+            {{-- 5秒後にフラッシュメッセージを非表示にする --}}
+            setTimeout(() => showFlashMessage = false, 3000); 
+    })">
+    
+        <!-- フラッシュメッセージ表示部 -->
+        <span class="d-flex justify-content-center alert p-2" x-text="message" 
+            x-bind:class="{ 
+                'alert-success': type === 'success',
+                'alert-danger' : type === 'error',
+                'alert-info'   : type === 'info',
+                'alert-dark'   : type === 'dark',
+                'alert-warning': type === 'warning'}"
+            x-on:click="showFlashMessage = false">
+        </span>  
+    </div>
 
 
 <!--/////////
     認証系
 //////////-->
-<!--************************
-        ログアウト処理
-    ***************************-->
-<?php
-        use App\Livewire\Actions\Logout;    
-        
-        # ログアウト処理
-        public function logout(Logout $logout): void
-        {
-            $logout();
-
-            $this->redirect('/', navigate: true);
-        }
-
-        /** 解説
-         * 1 Logoutクラスをメソッドインジェクションで$logoutに代入し、メソッドとして利用することでクラス内にあるログアウト処理を実行する
-         * 2 guestミドルウェアにより未認証のルートURL(pages.auth.register-login)にリダイレクトされる
-         * 
-        */
-        
-        ?>
-
+    <!--************************
+            ログアウト処理
+    **************************-->
+    <?php
+    use App\Livewire\Actions\Logout;    
+    # ログアウト処理
+    public function logout(Logout $logout): void
+    {
+        $logout();
+        $this->redirect('/', navigate: true);
+    }
+    /** 解説
+     * 1 Logoutクラスをメソッドインジェクションで$logoutに代入し、メソッドとして利用することでクラス内にあるログアウト処理を実行する
+     * 2 guestミドルウェアにより未認証のルートURL(pages.auth.register-login)にリダイレクトされる
+     * 
+    */
+    ?>
 
     <!--************************
             エラーメッセージの表示

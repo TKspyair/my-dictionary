@@ -28,13 +28,41 @@
 </head>
 
 {{-- 
-* レイアウト関連のクラスはすべて子ファイルで設定する
+* 100svh: アドレスバーが表示されているときの最小の高さ
+* 最小の高さ: CSSにおいて最も狭い状態の高さのこと、これ以上画面が狭くなることがなくなるため、レイアウトの安定性が高まる
+* 100vh: 古いブラウザなどで100svhが読み込めないとき用
+* 
+* containerクラスは子ファイルで設定する
 > ページごとに最適な幅を設定するため 
 --}}
 <body>
-    <main>
-        {{ $slot }}
-    </main>
+    <!-- フラッシュメッセージ機能 -->
+    <div class="position-fixed top-0 start-50 translate-middle-x mt-3 z-3" style="width: 95%;" 
+        x-data="{ showFlashMessage: false, message: '', type: '' }"
+        x-show="showFlashMessage"
+        x-init="
+        {{-- フラッシュメッセージイベントを受け取る --}}
+        window.addEventListener('flash-message', e => {
+            message = e.detail.message;
+            type = e.detail.type
+            showFlashMessage = true;
+
+            {{-- 5秒後にフラッシュメッセージを非表示にする --}}
+            setTimeout(() => showFlashMessage = false, 3000); 
+    })">
+    
+        <!-- フラッシュメッセージ表示部 -->
+        <span class="d-flex justify-content-center alert p-2" x-text="message" 
+            x-bind:class="{ 
+                'alert-success': type === 'success',
+                'alert-danger' : type === 'error',
+                'alert-info'   : type === 'info',
+                'alert-dark'   : type === 'dark',
+                'alert-warning': type === 'warning'}"
+            x-on:click="showFlashMessage = false">
+        </span>  
+    </div>
+    {{ $slot }}
 </body>
 
 </html>

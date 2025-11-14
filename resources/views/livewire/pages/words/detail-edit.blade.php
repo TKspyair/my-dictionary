@@ -158,7 +158,7 @@ new #[Layout('layouts.words-app')] class extends Component
 ?>
 
 
-<section class="container-lg" x-data="{ showModal: false, editMode: false }" x-on:open-words-detail-and-edit-modal.window="showModal = true"
+<section class="container-md" x-data="{ showModal: false, editMode: false }" x-on:open-words-detail-and-edit-modal.window="showModal = true"
     x-on:close-all-modal.window="showModal = false">
 
     <!-- モーダル本体 -->

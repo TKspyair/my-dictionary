@@ -6,6 +6,15 @@ use App\Livewire\Actions\Logout;
 
 new #[Layout('layouts.words-app')] class extends Component 
 {
+//======================================================================
+// プロパティ
+//======================================================================
+
+    public string $password = '';
+
+//======================================================================
+// メソッド
+//======================================================================
     # ログアウトを実行する　my-dictionary\app\Livewire\Actions\Logout.php
     /** 依存性の注入(Dependency(依存性) Injyection(注入))
      * あるクラスが必要とする依存オブジェクトを、クラスの外部から提供(注入)する手法
@@ -28,10 +37,37 @@ new #[Layout('layouts.words-app')] class extends Component
         // ログアウト後のリダイレクト
         $this->redirect('/', navigate: true);
     }
+
+    # ユーザーアカウント削除
+    public function deleteUser(Logout $logout): void
+    {
+        $this->validate([
+            'password' => ['required', 'string', 'current_password'],
+        ]);
+
+        /** tap(Auth::user(), $logout(...))->delete();
+         * 1 フロント側のデータを削除: ログアウト処理をして、セッションと認証トークンを無効化
+         * 2 サーバー側のデータを削除: ユーザー情報をDBから削除
+         * ※ログアウト処理をしないと、ユーザー情報削除後もログイン後のページにアクセスできてしまう可能性があるため
+         * 
+         * **tap(第1引数, [コールバック関数])
+         * 1 第1引数を第2引数のコールバック関数に渡す
+         * 2 コールバック関数実行
+         * 3 コールバック関数の結果を第1引数に代入する
+         * 
+         ** $logout(...)の「...」: コールバック関数のショートハンド記法 
+         * 通常の記法: tap(Auth::user(), function ($user) use ($logout) { $logout($user); })
+         * 今回の記法: tap(Auth::user(), $logout(...))
+         * ※三項演算子も単純なif文のショートハンド記法
+        */
+        tap(Auth::user(), $logout(...))->delete();
+
+        $this->redirect('/', navigate: true);
+    }
 };
 ?>
 
-<div class="container-fluid">
+<div class="container-md">
 
     <!--オフキャンバス-->
     <div class="offcanvas offcanvas-start w-75" tabindex="-1" id="menu-index-offcanvas">
@@ -61,9 +97,13 @@ new #[Layout('layouts.words-app')] class extends Component
             </div>
 
             <!-- ログアウトボタン -->
-            <div class="position-absolute start-50 translate-middle-x" style="bottom: 50px;">
-                <button type="button"  class="btn btn-secondary" wire:click="logout">
+            <div class="position-absolute start-50 translate-middle-x top-100" >
+                <button type="button" class="btn btn-secondary" wire:click="logout">
                     ログアウト
+                </button>
+
+                <button type="button" class="btn btn-secondary" wire:click="deleteUser">
+                    アカウント削除
                 </button>
             </div>
         </div>

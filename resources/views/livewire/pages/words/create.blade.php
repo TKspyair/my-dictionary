@@ -12,9 +12,9 @@ use Livewire\Volt\Component;
 
 new #[Layout('layouts.words-app')] class extends Component 
 {
-//======================================================================
-// プロパティ
-//======================================================================
+    //======================================================================
+    // プロパティ
+    //======================================================================
     public string $wordName = '';
 
     public string $wordDescription = '';
@@ -22,24 +22,24 @@ new #[Layout('layouts.words-app')] class extends Component
     # 選択されたタグのコレクション
     public $selectedTags;
 
-//======================================================================
-// 初期化
-//======================================================================
+    //======================================================================
+    // 初期化
+    //======================================================================
 
     public function mount()
     {
         #プロパティの宣言時には空のコレクションを入れられないので、ここで代入
         $this->selectedTags = collect();
     }
-//======================================================================
-// バリデーション
-//======================================================================
+    //======================================================================
+    // バリデーション
+    //======================================================================
     # バリデーションルール
     public function rules()
     {
         return [
-            'wordName' => ['required', 'string', 'max:255', Rule::unique('words', 'word_name')],
-            'wordDescription' => ['required', 'string'],
+            'wordName' => ['string', 'max:255',],
+            'wordDescription' => ['string'],
         ];
     }
 
@@ -47,74 +47,92 @@ new #[Layout('layouts.words-app')] class extends Component
     public function messages()
     {
         return [
-            'wordName.required' => '語句は必須です。',
             'wordName.string' => '語句は文字列で入力してください。',
-            'wordName.max' => '語句は255文字以内で入力してください。',
-            'wordName.unique' => 'この語句は既に使用されています。',
-            'wordDescription.required' => '説明は必須です。',
+            'wordName.max' => '語句名は255文字以内で入力してください。',
             'wordDescription.string' => '説明は文字列で入力してください。',
         ];
     }
 
-//======================================================================
-// メソッド
-//======================================================================
-    
+    //======================================================================
+    // メソッド
+    //======================================================================
+
     //-----------------------------------------------------
     // CRUD機能
     //-----------------------------------------------------
-        # 語句データをDBに登録する
-        public function createWord(): void
-        {
-            $validated = $this->validate();
-
-            $this->dispatch('close-all-modal');
-
-            $word = Word::create([
-                'word_name' => $validated['wordName'],
-                'description' => $validated['wordDescription'],
-                'user_id' => Auth::id(),
-            ]);
-
-            //attouch()によりtag_idとword_idが自動的に結び付けられ、中間テーブルに挿入される
-            $word->tags()->attach($this->selectedTags);
-            // tags() : Wordモデルのクラスメソッド。
-            /*attach() :
-            中間テーブルへのレコード挿入: 中間テーブルに、関連付けに必要な外部キーのペア（例：word_idとtag_id）を自動的に挿入
-            IDの自動取得: $word->tags()->attach(...)のように呼び出された際に、呼び出し元のモデル（この場合は $word）のIDを自動的に取得
-            */
-
+    
+    # 語句データをDBに登録する
+    public function createWord(): void {
+        
+        # 語句名と説明どちらも未入力なら登録処理を中断する
+        if(empty($this->wordName) && empty($this->wordDescription)) {
+            
             $this->clearForm();
 
-            $this->dispatch('update-words');
+            #  空のメッセージを削除したというメッセージを表示するイベントの発火
+            /**
+             * message: フラッシュメッセージの内容
+             * type: フラッシュメッセージの色指定(例: info →　青) 
+            */
+            $this->dispatch('flash-message', message: '空のメモを削除しました', type: 'dark');
+            
+            return;
         }
 
-        # フォームをクリア
-        public function clearForm()
-        {
-            $this->reset(['wordName', 'wordDescription', 'selectedTags']);
-            $this->resetValidation();
-            //resetValidation() : livewireのメソッド、バリデーションのエラーメッセージをクリアする
-            //変数とプロパティの違い：プロパティはクラスやオブジェクトに属する変数、変数はクラスやオブジェクトに属さない、データを保持するもの
-            //関数とメソッドの違い：メソッドはクラスやオブジェクトに属する、関数はクラスやオブジェクトに属さない、処理を行うもの
-            //reset()はプロパティに対して動作するメソッドなので、'プロパティ名'を引数に渡す
+        #　説明が記述されているが語句名が空の場合、語句名を「未入力」とする
+        if(empty($this->wordName) && !empty($this->wordDescription)) {
+            $this->wordName = '未入力';
         }
+
+        $validated = $this->validate();
+
+        $this->dispatch('close-all-modal');
+
+        $word = Word::create([
+            'word_name' => $validated['wordName'],
+            'description' => $validated['wordDescription'],
+            'user_id' => Auth::id(),
+        ]);
+
+        /** 
+         * attach() :
+         * 1 中間テーブルへのレコード挿入: 中間テーブルに、関連付けに必要な外部キーのペア（例：word_idとtag_id）を自動的に挿入
+         * 2 IDの自動取得: $word->tags()->attach(...)のように呼び出された際に、呼び出し元のモデル（この場合は $word）のIDを自動的に取得
+         * attouch()によりtag_idとword_idが自動的に結び付けられ、中間テーブルに挿入される
+         */
+        $word->tags()->attach($this->selectedTags);
+
+        $this->clearForm();
+
+        $this->dispatch('update-words');
+    }
+
+    # フォームをクリア
+    public function clearForm()
+    {
+        $this->reset(['wordName', 'wordDescription', 'selectedTags']);
+        $this->resetValidation();
+        //resetValidation() : livewireのメソッド、バリデーションのエラーメッセージをクリアする
+        //変数とプロパティの違い：プロパティはクラスやオブジェクトに属する変数、変数はクラスやオブジェクトに属さない、データを保持するもの
+        //関数とメソッドの違い：メソッドはクラスやオブジェクトに属する、関数はクラスやオブジェクトに属さない、処理を行うもの
+        //reset()はプロパティに対して動作するメソッドなので、'プロパティ名'を引数に渡す
+    }
 
     //-----------------------------------------------------
     // タグ選択専用　tags.check-list
     //-----------------------------------------------------
-        # 選択したタグのidを渡される
-        #[On('send-selected-tag-ids')]
-        public function loadSelectedTags(array $selectedTagIds)
-        {
-            //引数のタグidをもつタグコレクションを取得
-            $this->selectedTags = Tag::whereIn('id', $selectedTagIds)->get();
-        }
+    # 選択したタグのidを渡される
+    #[On('send-selected-tag-ids')]
+    public function loadSelectedTags(array $selectedTagIds)
+    {
+        //引数のタグidをもつタグコレクションを取得
+        $this->selectedTags = Tag::whereIn('id', $selectedTagIds)->get();
+    }
 }; ?>
 
 
 
-<div class="container-fluid" x-data="{ showModal: false }" x-on:open-words-create-modal.window="showModal = true"
+<div class="container-md" x-data="{ showModal: false }" x-on:open-words-create-modal.window="showModal = true"
     x-on:close-all-modal.window="showModal = false">
 
     <div x-show="showModal">
@@ -122,54 +140,55 @@ new #[Layout('layouts.words-app')] class extends Component
         <!-- モーダル部 -->
         <div class="modal d-block" tabindex="-1">
             <div class="modal-dialog modal-fullscreen">
+
                 <div class="modal-content">
-                    <form wire:submit.prevent="createWord">
-                        <!--「.prevent」：ブラウザのデフォルトのフォーム送信を無効化し、ページのリロードをなくす-->
 
-                        <!-- ヘッダー部 -->
-                        <div class="modal-header d-flex align-items-center p-2">
+                    <!-- ヘッダー部 -->
+                    <header class="modal-header d-flex justify-content-between align-items-center p-2">
 
-                            <!--戻るボタン-->
-                            <x-back-button wire:click="clearForm" />
+                        <div class="d-flex align-items-center">
+                            <!-- 戻るボタン ※フォーム送信機能をもつ-->
+                            {{-- 
+                            ** form要素外にあるinput要素やsubmit属性をもつbutton要素はform要素と連動しないが、以下の属性を使用すると関連付けれる
+                            * form="form要素のid": 、form属性を使用することで任意のform要素に関連付けれる
+                            --}}
+                            <x-back-button form="create-word-form" wire:click="createWord"/>
 
                             <h5 class="modal-title mb-0">新規作成</h5>
                         </div>
 
-                        <!-- ボディ部 -->
-                        <div class="modal-body">
+                        <!-- タグ選択ボタン -->
+                        <div>
+                            <button type="button" x-on:click="$dispatch('open-tags-check-list')">
+                                タグ選択
+                            </button>
+
+                            @livewire('pages.tags.check-list')
+                        </div>
+                    </header>
+
+                    <!-- ボディ部 -->
+                    {{-- 
+                    * mx-2 mb-2: 入力フィールドが画面端まで広がらないように制限
+                    * d-flex flex-grow-1 w-100: flex-grow-1で縦方向に要素を広げ、w-100で横方向にも広げる
+                    --}}
+                    <div class="modal-body d-flex flex-grow-1 mx-2 mb-2">
+                        <form id="create-word-form" class="d-flex flex-column w-100 " wire:submit.prevent="createWord">
 
                             <!-- 語句名フィールド -->
-                            <x-form-input wire:model="wordName" class="fs-5 fw-bold" placeholder="語句" />
-
-                            <!-- 語句説明フィールド -->
-                            <x-form-textarea wire:model="wordDescription" placeholder="説明" />
-
-                            <!-- タグ選択ボタン -->
-                            <div>
-                                <button type="button" x-on:click="$dispatch('open-tags-check-list')">
-                                    タグ選択
-                                </button>
-
-                                @if ($this->selectedTags)
-                                    <div class="d-flex">
-                                        @foreach ($this->selectedTags as $selectedTag)
-                                            <span class="badge bg-secondary me-1" wire:key="{{ $selectedTag->id }}">
-                                                {{ $selectedTag->tag_name }}
-                                            </span>
-                                        @endforeach
-                                    </div>
-                                @endif
-                                @livewire('pages.tags.check-list')
+                            <div class="position-relative">
+                                <x-form-input wire:model="wordName" />
                             </div>
-                        </div>
 
-                        <!--保存ボタン-->
-                        <div class="d-flex justify-content-center">
-                            <button type="submit" class="btn btn-primary">保存</button>
-                        </div>
-                    </form>
+                            <!-- 説明フィールド -->
+                            <div class="position-relative d-flex flex-grow-1 mt-5">
+                                <x-form-textarea wire:model="wordDescription"/>
+                            </div>
+                        </form>
+                    </div>
+
                 </div>
             </div>
         </div>
-    </div> 
+    </div>
 </div>
