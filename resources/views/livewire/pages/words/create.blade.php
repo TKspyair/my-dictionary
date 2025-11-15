@@ -108,12 +108,18 @@ new #[Layout('layouts.words-app')] class extends Component
     }
 
     //-----------------------------------------------------
-    // タグ選択専用　tags.check-list
+    // タグ選択関連　tags.check-listとのみ連携
     //-----------------------------------------------------
-    # 選択したタグのidを渡される
-    #[On('send-selected-tag-ids')]
+    # 選択したタグのid(配列型)を渡される 
+    #[On('return-selected-tag-ids')]
     public function loadSelectedTags(array $selectedTagIds)
     {
+        # 引数がnullまたは空なら、処理を中断する
+        if (empty($selectedTagIds)) {
+            $this->selectedTags = collect(); //空のコレクションを返す
+            return;
+        }
+
         //引数のタグidをもつタグコレクションを取得
         $this->selectedTags = Tag::whereIn('id', $selectedTagIds)->get();
     }
@@ -163,8 +169,9 @@ new #[Layout('layouts.words-app')] class extends Component
                     * mx-2 mb-2: 入力フィールドが画面端まで広がらないように制限
                     * d-flex flex-grow-1 w-100: flex-grow-1で縦方向に要素を広げ、w-100で横方向にも広げる
                     --}}
-                    <div class="modal-body d-flex flex-grow-1 flex-column mx-2 mb-2">
-                        <form id="create-word-form" class="position-relative d-flex flex-column w-100" wire:submit.prevent="createWord">
+                    <div class="modal-body d-flex flex-grow-1 flex-column mx-2 mb-2 bg-white">
+                        
+                        <form id="create-word-form" class="d-flex flex-column w-100" wire:submit.prevent="createWord">
 
                             <!-- 語句名フィールド -->
                             <div>
@@ -179,8 +186,9 @@ new #[Layout('layouts.words-app')] class extends Component
                                 <x-form-textarea wire:model="wordDescription"/>
                             </div>
                         </form>
+                        
                         <!-- タグ一覧 -->
-                        <div class="postion-absolute top-0 mt-3">
+                        <div class="mt-3">
                             @foreach ($this->selectedTags as $selectedTag)
                                 <span class="badge bg-secondary me-2 mb-2 p-2" wire:key="{{ $selectedTag->id }}">
                                     {{ $selectedTag->tag_name }}

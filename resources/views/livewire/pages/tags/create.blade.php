@@ -162,7 +162,7 @@ new #[Layout('layouts.words-app')] class extends Component
                     </header>
 
                     <!-- ボディ -->
-                    <div class="modal-body">
+                    <div class="modal-body bg-white">
 
                         {{-- タグ作成欄 --}}
                         <article>

@@ -44,7 +44,7 @@ new #[Layout('layouts.words-app')] class extends Component
         # $selectedTagIdsの値が追加・削除(更新)されると、そのデータを配列で他ファイルに渡す
         public function updatedSelectedTagIds()
         {
-            $this->dispatch('send-selected-tag-ids', selectedTagIds: $this->selectedTagIds);
+            $this->dispatch('return-selected-tag-ids', selectedTagIds: $this->selectedTagIds);
 
             /** 関連ファイル 
              * words.create
@@ -64,6 +64,7 @@ new #[Layout('layouts.words-app')] class extends Component
 
             /** 関連ファイル
              * words.detail-edit 
+             * words.
             */
         }
 };

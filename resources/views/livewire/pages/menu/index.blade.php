@@ -81,7 +81,7 @@ new #[Layout('layouts.words-app')] class extends Component
         </div>
 
         <!-- ボディ -->
-        <div class="offcanvas-body">
+        <div class="offcanvas-body bg-white">
 
             <hr>
             <!--タグメニュー-->

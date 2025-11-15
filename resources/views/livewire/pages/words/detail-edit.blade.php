@@ -8,7 +8,8 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\On; // #[On('wordsUpdated')]の使用
 use Livewire\Volt\Component;
 
-new #[Layout('layouts.words-app')] class extends Component {
+new #[Layout('layouts.words-app')] class extends Component 
+{
     //======================================================================
     // プロパティ
     //======================================================================
@@ -44,20 +45,6 @@ new #[Layout('layouts.words-app')] class extends Component {
         return [
             'wordName' => ['string', 'max:255'],
             'wordDescription' => ['nullable', 'string'],
-        ];
-    }
-    /*
-    - ignore(モデルインスタンスorカラムの値) : Rule::uniqueメソッド、引数に指定された値をもつレコードをユニーク制約から除外する
-    - optional($value) : 引数がnullなら処理を中断しnullを返す、もしnullでなければ引数をそのまま返す
-    */
-
-    protected function messages(): array
-    {
-        return [
-            'wordName.string' => '語句名は文字列で入力してください。',
-            'wordName.max' => '語句名は255文字以内で入力してください。',
-
-            'wordDescription.string' => '説明は文字列で入力してください。',
         ];
     }
 
@@ -146,23 +133,29 @@ new #[Layout('layouts.words-app')] class extends Component {
         $this->wordName = $this->word->word_name;
         $this->wordDescription = $this->word->description;
         $this->selectedTags = $this->word->tags;
+        
         $this->dispatch('open-words-detail-and-edit-modal');
     }
 
     //-----------------------------------------------------
     // タグ選択関連 tags.check-listとのみ連携
     //-----------------------------------------------------
-    # 選択されたタグのidを配列型で渡す
+    # 選択されたタグのid(配列型)を渡す
+    /** sendSelectedTagIds(): 既に紐づけられているタグをtags.check-list内で選択済みにする
+     * 一覧モードから編集モードへの切り替え時に実行
+     * 
+    */
     public function sendSelectedTagIds()
     {
         # チェックしたTagインスタンスをidのみの配列にする
         $this->selectedTagIds = $this->selectedTags->pluck('id')->all();
 
-        $this->dispatch('dispatch-selected-tag-ids', selectedTagIds: $this->selectedtagIds)->to('pages.tags.check-list');
+        $this->dispatch('send-selected-tag-ids', selectedTagIds: $this->selectedTagIds)
+            ->to('pages.tags.check-list');
     }
 
-    # 選択されたタグのidを配列型で受け取り、コレクション型に変換する
-    #[On('dispatch-selected-tag-ids')]
+    # 選択されたタグのidを配列型で受け取り、コレクション型に変換する from tags.check-list
+    #[On('return-selected-tag-ids')]
     public function loadSelectedTags(array $selectedTagIds)
     {
         # 引数がnullまたは空なら、処理を中断する
@@ -185,119 +178,135 @@ new #[Layout('layouts.words-app')] class extends Component {
     <div x-show="showModal">
         <div class="modal d-block" tabindex="-1">
             <div class="modal-dialog modal-fullscreen">
+
                 <div class="modal-content">
-
-                    <!-- ヘッダー部 -->
-                    <header class="modal-header p-2">
-
-                        <!-- 一覧モード用ヘッダー -->
-                        <!-- w-100がないとarticle要素の幅が小さくなるので注意(子要素のjustify-content-betweenが機能しない) -->
-                        <div class="d-flex justify-content-between align-items-center p-2" x-show="!editMode">
+ 
+                    <!-- 一覧と編集の切り替え部 -->
+                    <article x-show="!editMode">
+                        <!-- ヘッダー部 -->
+                        <header class="modal-header d-flex justify-content-between align-items-center p-2">
 
                             <!-- ヘッダー左側 -->
                             <div class="d-flex align-items-center">
                                 <!--戻るボタン -->
-                                <x-back-button/>
+                                <x-back-button />
 
-                                <!-- タイトル -->
-                                <h5 class="m-0">詳細</h5>
+                                <span class="fs-5 fw-bold">詳細</span>
                             </div>
 
                             <!-- ヘッダー右側 -->
                             <div class="dropdown">
+                                <!-- ドロップダウン表示ボタン -->
                                 <span data-bs-toggle="dropdown" class="me-2">
                                     <i class="bi bi-three-dots-vertical"></i>
                                 </span>
 
+                                <!-- ドロップダウンメニュー -->
                                 <ul class="dropdown-menu p-1">
+
                                     <!-- 編集ボタン -->
                                     <li x-on:click="editMode = true" class="m-1">
                                         <span><i class="bi bi-pencil me-1"></i>編集</span>
                                     </li>
-
                                     <!-- 削除ボタン -->
                                     <li wire:click="deleteWord" wire:confirm="本当に削除しますか？" class="m-1">
                                         <span class="text-danger"><i class="bi bi-trash me-1"></i>削除</span>
+
                                     </li>
                                 </ul>
                             </div>
-                        </div>
+                        </header>
 
-                        <!-- 編集モード用ヘッダー -->
-                        <div class="d-flex align-items-center p-0 pb-2 w-100" x-show="editMode">
-                            <!-- 戻るボタン ※編集画面から離れるとき、語句を更新-->
-                            <button type="submit" x-on:click="editMode = false" form="edit-form"
-                                class="btn btn-link text-dark border-0 p-0 m-2">
-                                <i class="bi bi-arrow-left fs-4"></i>
-                            </button>
-                            <!-- タイトル -->
-                            <h5 class="m-0">編集</h5>
-                        </div>
+                        {{-- 
+                        * bg-white: 背景を白にすることで、モーダル展開前のページの要素が透けることが防げる
+                        --}}
+                        <div class="modal-body d-flex flex-column flex-grow-1 mx-2 mb-2 bg-white">
 
-                        <!-- タグ選択ボタン -->
-                        <div>
-                            <button type="button" x-on:click="$dispatch('open-tags-check-list')"
-                                wire:click="selectedTagIds">
-                                <span>タグ選択</span>
-                            </button>
-                        </div>
-                    </header>
+                            <!-- 詳細モード -->
+                            <div class="position-relative d-flex flex-column w-100" x-show="!editMode">
 
-                    <div class="modal-body d-flex flex-grow-1 mx-2 mb-2">
+                                <!-- 語句名 -->
+                                <div>
+                                    <span class="fs-5 fs-bold p-0">{{ $this->wordName }}</span>
+                                </div>
 
-                        <!-- 詳細モード -->
-                        <article class="d-flex flex-column w-100" x-show="!editMode">
-
-                            <!-- 語句名 -->
-                            <div>
-                                <span class="fs-5 fs-bold p-0">{{ $this->wordName }}</span>
-                            </div>
-
-                            <!-- 説明フィールド -->
-                            <div class="d-flex flex-grow-1 mt-3">
-                                <p class="flex-grow-1 p-0 text-break">
-                                    {{ $this->wordDescription }}
-                                </p>
-                            </div>
-
-                            <!-- タグ一覧 -->
-                            <div class="d-flex">
-                                {{--  --}}
-                                @foreach ($this->selectedTags as $selectedTag)
-                                    <span wire:key="{{ $selectedTag->id }}" class="badge bg-secondary me-1">
-                                        {{ $selectedTag->tag_name }}
-                                    </span>
-                                @endforeach
-
-                            </div>
-                        </article>
-
-                        <!-- 編集モード -->
-                        <article x-show="editMode">
-                            <form class="d-flex flex-column w-100" wire:submit.prevent="updateWord" id="edit-form">
-
-                                <!-- 語句フィールド $wordName -->
-                                <x-form-input wire:model="wordName" />
-
-                                <!-- 説明フィールド $wordDescription-->
-                                <x-form-textarea class="d-flex flex-grow-1 mt-3" wire:model="wordDescription" />
-
+                                <!-- 説明フィールド -->
+                                <div class="mt-3">
+                                    <p class="flex-grow-1 p-0 text-break">{{ $this->wordDescription }}</p>
+                                </div>
 
                                 <!-- タグ一覧 -->
-                                <div class="d-flex">
-
+                                <div class="postion-absolute top-0 mt-3">
                                     @foreach ($this->selectedTags as $selectedTag)
-                                        <span class="badge bg-secondary me-1 mb-1" wire:key="{{ $selectedTag->id }}">
+                                        <span class="badge bg-secondary me-2 mb-2 p-2"
+                                            wire:key="{{ $selectedTag->id }}">
                                             {{ $selectedTag->tag_name }}
                                         </span>
                                     @endforeach
-
                                 </div>
-                                <!-- タグチェックリスト -->
-                                @livewire('pages.tags.check-list')
-                        </article>
-                    </div>
+                            </div>
+                        </div>
+                    </article>
 
+                    <!-- 編集モード -->
+                    <article x-show="editMode">
+                        <!-- ヘッダー部 -->
+                        <header class="modal-header d-flex justify-content-between align-items-center p-2"
+                            x-show="editMode">
+
+                            <!-- ヘッダー左側 -->
+                            <div class="d-flex align-items-center">
+                                <!-- 戻るボタン(編集確定ボタンの機能をもつ)-->
+                                {{-- 
+                                * ※ x-back-buttonは使用しない
+                                * > x-back-buttonにはモーダルを閉じる機能があるが、このボタンはあくまで編集モードから一覧モードに切り替える機能のため
+                                --}}
+                                <button type="submit" form="edit-form" x-on:click="editMode = false"
+                                    class="btn btn-link text-dark border-0 p-0 m-2">
+                                    <i class="bi bi-arrow-left fs-4"></i>
+                                </button>
+
+                                <span class="fs-5 fw-bold">編集</span>
+                            </div>
+
+                            <!-- ヘッダー右側 -->
+                            <div>
+                                <button type="button" x-on:click="$dispatch('open-tags-check-list')"
+                                    wire:click="sendSelectedTagIds">
+                                    <span>タグ選択</span>
+                                </button>
+                                <!-- タグ選択リストモーダル -->
+                                @livewire('pages.tags.check-list')
+                            </div>
+                        </header>
+
+                        <!-- ボディ部 -->
+                        <div class="modal-body d-flex flex-grow-1 flex-column mx-2 mb-2">
+
+                            <form id="edit-form" class="d-flex flex-column w-100"
+                                wire:submit.prevent="updateWord">
+
+                                <!-- 語句フィールド $wordName -->
+                                <div>
+                                    <x-form-input wire:model="wordName" />
+                                </div>
+
+                                <!-- 説明フィールド $wordDescription-->
+                                <div class="mt-3">
+                                    <x-form-textarea wire:model="wordDescription" />
+                                </div>
+                            </form>
+                            
+                            <!-- タグ一覧 -->
+                            <div class="mt-3">
+                                @foreach ($this->selectedTags as $selectedTag)
+                                    <span class="badge bg-secondary me-2 mb-2 p-2" wire:key="{{ $selectedTag->id }}">
+                                        {{ $selectedTag->tag_name }}
+                                    </span>
+                                @endforeach
+                            </div>
+                        </div>
+                    </article>
                 </div>
             </div>
         </div>
