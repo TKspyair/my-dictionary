@@ -1,56 +1,62 @@
 <?php
-
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Collection;
+use Illuminate\Validation\Rule;
 use App\Models\User;
 use App\Models\Word;
 use App\Models\Tag;
-use Illuminate\Validation\Rule;
-use Livewire\Attributes\On;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\On; // #[On('wordsUpdated')]の使用
 use Livewire\Volt\Component;
 
-new #[Layout('layouts.words-app')] class extends Component 
-{
+new #[Layout('layouts.words-app')] class extends Component {
     //======================================================================
     // プロパティ
     //======================================================================
-    public string $wordName = '';
 
-    public string $wordDescription = '';
+    # words.word-listから送信された語句インスタンスを格納
+    public Word $word;
 
-    # 選択されたタグのコレクション
+    # $this->word->word_nameを格納
+    public ?string $wordName = '';
+
+    # $this->word->descriptionを格納
+    public ?string $wordDescription = '';
+
+    # $wordに紐づくtagsコレクション
     public $selectedTags;
+
+    public array $selectedTagIds = [];
 
     //======================================================================
     // 初期化
     //======================================================================
-
     public function mount()
     {
-        #プロパティの宣言時には空のコレクションを入れられないので、ここで代入
+        //nullだとfoeeach文がエラーを起こすため、空のコレクションを格納
         $this->selectedTags = collect();
     }
+
     //======================================================================
-    // バリデーション
+    // バリデーションルール
     //======================================================================
-    # バリデーションルール
-    public function rules()
+    protected function rules(): array
     {
         return [
-            'wordName' => ['required', 'string', 'max:255', Rule::unique('words', 'word_name')],
-            'wordDescription' => ['string'],
+            'wordName' => ['string', 'max:255'],
+            'wordDescription' => ['nullable', 'string'],
         ];
     }
+    /*
+    - ignore(モデルインスタンスorカラムの値) : Rule::uniqueメソッド、引数に指定された値をもつレコードをユニーク制約から除外する
+    - optional($value) : 引数がnullなら処理を中断しnullを返す、もしnullでなければ引数をそのまま返す
+    */
 
-    # エラーメッセージ
-    public function messages()
+    protected function messages(): array
     {
         return [
-            'wordName.required' => '語句は必須です。',
-            'wordName.string' => '語句は文字列で入力してください。',
-            'wordName.max' => '語句は255文字以内で入力してください。',
-            'wordName.unique' => 'この語句は既に使用されています。',
+            'wordName.string' => '語句名は文字列で入力してください。',
+            'wordName.max' => '語句名は255文字以内で入力してください。',
+
             'wordDescription.string' => '説明は文字列で入力してください。',
         ];
     }
@@ -62,120 +68,249 @@ new #[Layout('layouts.words-app')] class extends Component
     //-----------------------------------------------------
     // CRUD機能
     //-----------------------------------------------------
-    # 語句データをDBに登録する
-    public function createWord(): void
+    # 語句の更新
+    public function updateWord(): void
     {
-        $validated = $this->validate();
+        # ロードしたときの値(モデルのプロパティ)を現在のプロパティ(このクラスのプロパティ)で更新
+        $this->word->word_name = $this->wordName;
+        $this->word->description = $this->wordDescription;
 
-        $this->dispatch('close-all-modal');
+        # 指定した属性のいずれかに変更があれば true を返す
+        /**
+         * isDarty(): モデルプロパティの値がモデルがDBから取得された時とから変更があるか真偽判定する(変更有: true)
+         *
+         */
+        $contentChanged = $this->word->isDirty(['word_name', 'description']);
 
-        $word = Word::create([
-            'word_name' => $validated['wordName'],
-            'description' => $validated['wordDescription'],
-            'user_id' => Auth::id(),
+        # タグの変更チェック (多対多リレーションのため配列比較が必要)
+        $currentTagIds = $this->word->tags->pluck('id')->sort()->values()->all();
+        $tagsChanged = $currentTagIds !== $this->selectedTagIds;
+
+        # 変更が一つもない場合、処理をスキップ
+        if (!$contentChanged && !$tagsChanged) {
+            return;
+        }
+
+        # 一つでも変更があれば、更新処理
+
+        $this->validate();
+
+        $this->word->update([
+            'word_name' => $validate['wordName'],
+            'description' => $validate['wordDescription'],
         ]);
 
-        //attouch()によりtag_idとword_idが自動的に結び付けられ、中間テーブルに挿入される
-        $word->tags()->attach($this->selectedTags);
-        // tags() : Wordモデルのクラスメソッド。
-        /*attach() :
-            中間テーブルへのレコード挿入: 中間テーブルに、関連付けに必要な外部キーのペア（例：word_idとtag_id）を自動的に挿入
-            IDの自動取得: $word->tags()->attach(...)のように呼び出された際に、呼び出し元のモデル（この場合は $word）のIDを自動的に取得
+        # タグのリレーションを更新
+        /*sync(array id) : 引数で渡されたidの配列とword_tag(中間テーブル)のid同期する
+                > word_tag:[1,3] sync:[1,5] >> 更新された結果:[1,5]
             */
+        $this->word->tags()->sync($this->selectedTags->pluck('id')->all());
 
-        $this->clearForm();
-
+        # Wordコレクションの更新イベントを発火
         $this->dispatch('update-words');
     }
 
-    # フォームをクリア
-    public function clearForm()
+    # 語句データの削除
+    public function deleteWord(): void
     {
-        $this->reset(['wordName', 'wordDescription', 'selectedTags']);
-        $this->resetValidation();
-        //resetValidation() : livewireのメソッド、バリデーションのエラーメッセージをクリアする
-        //変数とプロパティの違い：プロパティはクラスやオブジェクトに属する変数、変数はクラスやオブジェクトに属さない、データを保持するもの
-        //関数とメソッドの違い：メソッドはクラスやオブジェクトに属する、関数はクラスやオブジェクトに属さない、処理を行うもの
-        //reset()はプロパティに対して動作するメソッドなので、'プロパティ名'を引数に渡す
+        # 現在編集中の語句をDBから削除
+        Auth::user()->words()->where('id', $this->word->id)->delete();
+
+        # 全モーダルを閉じる
+        $this->dispatch('close-all-modal');
+
+        # Wordコレクションの更新
+        $this->dispatch('update-words');
     }
 
     //-----------------------------------------------------
-    // タグ選択専用　tags.check-list
+    // イベントを受け取り、モーダルを開閉　words.words-list
     //-----------------------------------------------------
-    # 選択したタグのidを渡される
-    #[On('send-selected-tag-ids')]
+    /** openWordDetailModal()
+     * - words.words-listよりイベントを受け取り、実行
+     * - 引数のモデルインスタンスをクラスプロパティに代入
+     * - モーダルを開くイベントを発火
+     * empty()を使用しない理由 : empty() 引数が存在しないか、空のときにtrueを返す
+     * > モデルインスタンスはプロパティが空でも、オブジェクトが存在する(空とみなされないためempty()だとfalseになる)
+     * >> empty()のチェックをすり抜けてしまうため、nullチェック(![引数])を行う
+     */
+    # 語句のインスタンスを受け取り、その語句の詳細ページ(モーダル)を開く処理
+    #[On('send-word-instance')]
+    public function openWordDetailModal(Word $word): void
+    {
+        if (!$word) {
+            return;
+        }
+
+        $this->word = $word;
+        $this->wordName = $this->word->word_name;
+        $this->wordDescription = $this->word->description;
+        $this->selectedTags = $this->word->tags;
+        $this->dispatch('open-words-detail-and-edit-modal');
+    }
+
+    //-----------------------------------------------------
+    // タグ選択関連 tags.check-listとのみ連携
+    //-----------------------------------------------------
+    # 選択されたタグのidを配列型で渡す
+    public function sendSelectedTagIds()
+    {
+        # チェックしたTagインスタンスをidのみの配列にする
+        $this->selectedTagIds = $this->selectedTags->pluck('id')->all();
+
+        $this->dispatch('dispatch-selected-tag-ids', selectedTagIds: $this->selectedtagIds)->to('pages.tags.check-list');
+    }
+
+    # 選択されたタグのidを配列型で受け取り、コレクション型に変換する
+    #[On('dispatch-selected-tag-ids')]
     public function loadSelectedTags(array $selectedTagIds)
     {
-        //引数のタグidをもつタグコレクションを取得
+        # 引数がnullまたは空なら、処理を中断する
+        if (empty($selectedTagIds)) {
+            $this->selectedTags = collect(); //空のコレクションを返す
+            return;
+        }
+
+        # Tagコレクションの更新
         $this->selectedTags = Tag::whereIn('id', $selectedTagIds)->get();
     }
-}; ?>
+};
+?>
 
 
-
-<div class="container-md" x-data="{ showModal: false }" x-on:open-words-create-modal.window="showModal = true"
+<section class="container-md" x-data="{ showModal: false, editMode: false }" x-on:open-words-detail-and-edit-modal.window="showModal = true"
     x-on:close-all-modal.window="showModal = false">
 
+    <!-- モーダル本体 -->
     <div x-show="showModal">
-
-        <!-- モーダル部 -->
         <div class="modal d-block" tabindex="-1">
             <div class="modal-dialog modal-fullscreen">
 
                 <div class="modal-content">
 
-                    <!-- ヘッダー部 -->
-                    <header class="modal-header d-flex justify-content-between align-items-center p-2">
+                    <!-- 一覧と編集の切り替え部 -->
+                    <article x-show="!editMode">
+                        <!-- ヘッダー部 -->
+                        <header class="modal-header d-flex justify-content-between align-items-center p-2">
 
-                        <div class="d-flex align-items-center">
-                            <!--戻るボタン-->
-                            <x-back-button wire:click="clearForm" />
+                            <!-- ヘッダー左側 -->
+                            <div class="d-flex align-items-center">
+                                <!--戻るボタン -->
+                                <x-back-button />
 
-                            <h5 class="modal-title mb-0">新規作成</h5>
+                                <span class="fs-5 fw-bold">詳細</span>
+                            </div>
+
+                            <!-- ヘッダー右側 -->
+                            <div class="dropdown">
+                                <!-- ドロップダウン表示ボタン -->
+                                <span data-bs-toggle="dropdown" class="me-2">
+                                    <i class="bi bi-three-dots-vertical"></i>
+                                </span>
+
+                                <!-- ドロップダウンメニュー -->
+                                <ul class="dropdown-menu p-1">
+
+                                    <!-- 編集ボタン -->
+                                    <li x-on:click="editMode = true" class="m-1">
+                                        <span><i class="bi bi-pencil me-1"></i>編集</span>
+                                    </li>
+                                    <!-- 削除ボタン -->
+                                    <li wire:click="deleteWord" wire:confirm="本当に削除しますか？" class="m-1">
+                                        <span class="text-danger"><i class="bi bi-trash me-1"></i>削除</span>
+
+                                    </li>
+                                </ul>
+                            </div>
+                        </header>
+
+                        <div class="modal-body d-flex flex-column flex-grow-1 mx-2 mb-2">
+
+                            <!-- 詳細モード -->
+                            <div class="position-relative d-flex flex-column w-100" x-show="!editMode">
+
+                                <!-- 語句名 -->
+                                <div>
+                                    <span class="fs-5 fs-bold p-0">{{ $this->wordName }}</span>
+                                </div>
+
+                                <!-- 説明フィールド -->
+                                <div class="mt-3">
+                                    <p class="flex-grow-1 p-0 text-break">{{ $this->wordDescription }}</p>
+                                </div>
+
+                                <!-- タグ一覧 -->
+                                <div class="postion-absolute top-0 mt-3">
+                                    @foreach ($this->selectedTags as $selectedTag)
+                                        <span class="badge bg-secondary me-2 mb-2 p-2"
+                                            wire:key="{{ $selectedTag->id }}">
+                                            {{ $selectedTag->tag_name }}
+                                        </span>
+                                    @endforeach
+                                </div>
+                            </div>
                         </div>
+                    </article>
 
-                        <!-- タグ選択ボタン -->
-                        <div>
-                            <button type="button" x-on:click="$dispatch('open-tags-check-list')">
-                                タグ選択
-                            </button>
+                    <!-- 編集モード -->
+                    <article x-show="editMode">
+                        <!-- ヘッダー部 -->
+                        <header class="modal-header d-flex justify-content-between align-items-center p-2"
+                            x-show="editMode">
 
+                            <!-- ヘッダー左側 -->
+                            <div>
+                                <!-- 戻るボタン(編集確定ボタンの機能をもつ)-->
+                                {{-- 
+                                * ※ x-back-buttonは使用しない
+                                * > x-back-buttonにはモーダルを閉じる機能があるが、このボタンはあくまで編集モードから一覧モードに切り替える機能のため
+                                --}}
+                                <button type="submit" form="edit-form" x-on:click="editMode = false"
+                                    class="btn btn-link text-dark border-0 p-0 m-2">
+                                </button>
+
+                                <span class="fs-5 fw-bold">編集</span>
+                            </div>
+
+                            <!-- ヘッダー右側 -->
+                            <div>
+                                <button type="button" x-on:click="$dispatch('open-tags-check-list')"
+                                    wire:click="selectedTagIds">
+                                    <span>タグ選択</span>
+                                </button>
+                            </div>
+                            <!-- タグ選択リストモーダル -->
                             @livewire('pages.tags.check-list')
+                        </header>
+
+                        <!-- 編集モード -->
+                        <div class="modal-body d-flex flex-grow-1 flex-column mx-2 mb-2">
+
+                            <form id="edit-form" class="position-relative d-flex flex-column w-100"
+                                wire:submit.prevent="updateWord">
+
+                                <!-- 語句フィールド $wordName -->
+                                <div>
+                                    <x-form-input wire:model="wordName" />
+                                </div>
+
+                                <!-- 説明フィールド $wordDescription-->
+                                <div class="mt-3">
+                                    <x-form-textarea wire:model="wordDescription" />
+                                </div>
+                            </form>
+                            <!-- タグ一覧 -->
+                            <div class="postion-absolute top-0 mt-3">
+                                @foreach ($this->selectedTags as $selectedTag)
+                                    <span class="badge bg-secondary me-2 mb-2 p-2" wire:key="{{ $selectedTag->id }}">
+                                        {{ $selectedTag->tag_name }}
+                                    </span>
+                                @endforeach
+                            </div>
                         </div>
-                    </header>
-
-                    <!-- ボディ部 -->
-                    {{-- 
-                    * mx-2 mb-2: 入力フィールドが画面端まで広がらないように制限
-                    * d-flex flex-grow-1 w-100: flex-grow-1で縦方向に要素を広げ、w-100で横方向にも広げる
-                    --}}
-                    <div class="modal-body d-flex flex-grow-1 mx-2 mb-2">
-                        <form id="create-word-form" class="d-flex flex-column w-100 " wire:submit.prevent="createWord">
-
-                            <!-- 語句名フィールド -->
-                            <div class="position-relative">
-                                <x-form-input wire:model="wordName" />
-                            </div>
-
-                            <!-- 説明フィールド -->
-                            <div class="position-relative d-flex flex-grow-1 mt-5">
-                                <x-form-textarea wire:model="wordDescription"/>
-                            </div>
-                        </form>
-                    </div>
-
-                    <!-- 作成ボタン -->
-                    {{-- 
-                    ** form要素外にあるinput要素やsubmit属性をもつbutton要素はform要素と連動しないが、以下の属性を使用すると関連付けれる
-                    * form="form要素のid": 、form属性を使用することで任意のform要素に関連付けれる
-                    --}}
-                    <div class="modal-footer d-flex justify-content-center align-items-center m-3 p-0">
-                        <x-submit-button form="create-word-form">
-                            <span>作成</span>
-                        </x-submit-button>
-                    </div>
+                    </article>
                 </div>
             </div>
         </div>
     </div>
-</div>
+</section>

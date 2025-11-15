@@ -40,6 +40,7 @@
     <div class="position-fixed top-0 start-50 translate-middle-x mt-3 z-3" style="width: 95%;" 
         x-data="{ showFlashMessage: false, message: '', type: '' }"
         x-show="showFlashMessage"
+        x-on:click="showFlashMessage = false"
         x-init="
         {{-- フラッシュメッセージイベントを受け取る --}}
         window.addEventListener('flash-message', e => {
@@ -48,7 +49,7 @@
             showFlashMessage = true;
 
             {{-- 5秒後にフラッシュメッセージを非表示にする --}}
-            setTimeout(() => showFlashMessage = false, 3000); 
+            setTimeout(() => showFlashMessage = false, 2000); 
     })">
     
         <!-- フラッシュメッセージ表示部 -->
@@ -58,8 +59,7 @@
                 'alert-danger' : type === 'error',
                 'alert-info'   : type === 'info',
                 'alert-dark'   : type === 'dark',
-                'alert-warning': type === 'warning'}"
-            x-on:click="showFlashMessage = false">
+                'alert-warning': type === 'warning'}">
         </span>  
     </div>
     {{ $slot }}

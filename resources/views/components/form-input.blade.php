@@ -3,12 +3,6 @@
 * form-controlはCSSでカスタム済み resouces/css/app.css
 --}}
 <input type="text" {{ $attributes->merge(['class' => 'form-control fs-5 fs-bold p-0'])}} placeholder="語句" />
-
-@error($attributes->get('wire:model'))
-    <div {{ $attributes->merge(['class' => 'position-absolute start-0 top-100 text-danger list-unstyled']) }}>
-        {{ $message }}
-    </div>
-@enderror
 <!--
 $attributes : Bladeコンポーネント専用の変数、コンポーネントに渡されたすべてのHTML属性（class、id、wire:modelなど）をコレクションとして保持する
 $attributes->class(['クラス名' => 条件式]) : 条件式がtrueのときに、指定のクラスを追加する
