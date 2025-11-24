@@ -38,7 +38,7 @@ new #[Layout('layouts.words-app')] class extends Component {};
         <!--語句登録ボタン-->
         <div>
             <button x-on:click="$dispatch('open-words-create-modal')" 
-                class="position-fixed fab-button btn btn-primary rounded-circle shadow border-0" style="bottom: 60px; right: 25px;">
+                class="position-fixed fab-button btn btn-primary rounded-circle shadow border-0" style="bottom: 40px; right: 25px;">
                 <i class="bi bi-plus-lg"></i>
             </button>
         </div>

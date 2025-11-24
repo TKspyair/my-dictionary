@@ -1,5 +1,5 @@
 <?php
-
+//TODO: 戻るボタンを使用時に、選択されたタグのみがリセットされない→clearFormにてリセットされるはずだが、チェックリストの影響があるかもしれない
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Collection;
 use App\Models\User;
@@ -99,7 +99,8 @@ new #[Layout('layouts.words-app')] class extends Component
     # フォームをクリア
     public function clearForm()
     {
-        $this->reset(['wordName', 'wordDescription', 'selectedTags']);
+        $this->reset(['wordName', 'wordDescription']);
+        $this->selectedTags = collect();
         $this->resetValidation();
         //resetValidation() : livewireのメソッド、バリデーションのエラーメッセージをクリアする
         //変数とプロパティの違い：プロパティはクラスやオブジェクトに属する変数、変数はクラスやオブジェクトに属さない、データを保持するもの
@@ -156,7 +157,7 @@ new #[Layout('layouts.words-app')] class extends Component
                         <!-- ヘッダー右側 -->
                         <div>
                             <!-- タグ選択ボタン -->
-                            <button type="button" x-on:click="$dispatch('open-tags-check-list')">
+                            <button type="button" class="btn btn-outline-primary" x-on:click="$dispatch('open-tags-check-list')">
                                 <span>タグ選択</span>
                             </button>
                             <!-- タグ選択リストモーダル -->

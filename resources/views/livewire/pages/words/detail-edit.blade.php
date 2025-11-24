@@ -271,7 +271,7 @@ new #[Layout('layouts.words-app')] class extends Component
 
                             <!-- ヘッダー右側 -->
                             <div>
-                                <button type="button" x-on:click="$dispatch('open-tags-check-list')"
+                                <button type="button" class="btn btn-outline-primary" x-on:click="$dispatch('open-tags-check-list')"
                                     wire:click="sendSelectedTagIds">
                                     <span>タグ選択</span>
                                 </button>

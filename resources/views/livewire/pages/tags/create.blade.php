@@ -152,23 +152,22 @@ new #[Layout('layouts.words-app')] class extends Component
             <div class="modal-dialog modal-fullscreen">
                 <div class="modal-content">
 
-                    <!--ヘッダー-->
+                    <!-- ヘッダー部 -->
                     <header class="modal-header d-flex align-items-center p-2">
 
-                        <!--戻るボタン-->
+                        <!-- 戻るボタン -->
                         <x-back-button data-bs-toggle="offcanvas" data-bs-target="#menu-index-offcanvas" />
 
                         <h5 class="modal-title mb-0">タグの編集</h5>
                     </header>
 
-                    <!-- ボディ -->
+                    <!-- ボディ部 -->
                     <div class="modal-body bg-white">
 
                         {{-- タグ作成欄 --}}
                         <article>
                             {{-- 通常モード --}}
-                            <div x-show="!tagCreateMode"
-                                x-on:click="tagCreateMode = true">
+                            <div x-show="!tagCreateMode" x-on:click="tagCreateMode = true">
                                 <span>
                                     <i class="bi bi-plus-lg me-2"></i>新しいタグを作成
                                 </span>
@@ -180,31 +179,31 @@ new #[Layout('layouts.words-app')] class extends Component
 
                                     {{-- 作成キャンセルボタン --}}
                                     <button x-on:click="tagCreateMode = false" wire:click="clearCreateForm"
-                                        class="btn btn-link text-dark border-0 p-0 me-3">
+                                        class="btn btn-link text-dark border-0 p-0 me-3 fs-6">
                                         <i class="bi bi-x-lg"></i>
                                     </button>
 
                                     {{-- 新規タグ名フィールド --}}
-                                    <x-form-input wire:model="newTagName" wire:click="createTag"
+                                    <x-form-input class="fs-6" wire:model="newTagName" wire:click="createTag"
                                         wire:keydown.enter="createTag" x-ref="newTagName" />
                                 </div>
                             </div>
                         </article>
 
                         <!-- タグ一覧 -->
-                        <article>
+                        <article class="mt-3">
                             <ul class="list-group list-group-flush">
                                 @foreach ($this->tags as $tag)
-                                    <li class="list-group-item d-flex align-items-center" wire:key="{{ $tag->id }}">
+                                    <li class="list-group-item d-flex align-items-center border-0 p-0 my-2" wire:key="{{ $tag->id }}">
                                         {{-- 編集中のタグが存在すれば表示 --}}
                                         @if ($this->editingTagId === $tag->id)
                                             {{-- 編集モード --}}
-                                            <div class="input-group flex-grow-1">
+                                            <div class="d-flex align-items-center input-group flex-grow-1">
                                                 {{-- タグ削除ボタン --}}
                                                 <x-trash-button wire:click="deleteTag({{ $tag->id }})" />
 
                                                 {{-- 編集タグフィールド --}}
-                                                <x-form-input x-init="$el.focus()"
+                                                <x-form-input class="fs-6" x-init="$el.focus()"
                                                     wire:model="editingTagName"
                                                     wire:keydown.enter="updateTag" />
 
@@ -213,8 +212,8 @@ new #[Layout('layouts.words-app')] class extends Component
                                             </div>
                                         @else
                                             {{-- 一覧モード表示
-                                    - クリックするごとに編集中のタグが更新される
-                                    --}}
+                                            - クリックするごとに編集中のタグが更新される
+                                            --}}
                                             <div wire:click="switchEdit({{ $tag->id }})">
                                                 <span class="d-flex align-items-center flex-grow-1">
                                                     <i class="bi bi-tag text-decoration-none me-2"></i>
