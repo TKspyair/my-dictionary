@@ -1,5 +1,5 @@
 <?php
-//TODO: 戻るボタンを使用時に、選択されたタグのみがリセットされない→clearFormにてリセットされるはずだが、チェックリストの影響があるかもしれない
+
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Collection;
 use App\Models\User;
@@ -19,6 +19,12 @@ new #[Layout('layouts.words-app')] class extends Component
 
     public string $wordDescription = '';
 
+    //ユーザーのもつ全てのTagコレクション
+    public $tags;
+
+    //チェックしたタグのid
+    public $selectedTagIds = [];
+
     # 選択されたタグのコレクション
     public $selectedTags;
 
@@ -30,7 +36,16 @@ new #[Layout('layouts.words-app')] class extends Component
     {
         #プロパティの宣言時には空のコレクションを入れられないので、ここで代入
         $this->selectedTags = collect();
+        $this->loadTags();
     }
+
+    // タグ一覧の更新
+    #[On('update-tag-list')]
+    public function loadTags(): void
+    {
+        $this->tags = Auth::user()->tags()->orderBy('created_at', 'desc')->get();
+    }
+
     //======================================================================
     // バリデーション
     //======================================================================
@@ -99,8 +114,7 @@ new #[Layout('layouts.words-app')] class extends Component
     # フォームをクリア
     public function clearForm()
     {
-        $this->reset(['wordName', 'wordDescription']);
-        $this->selectedTags = collect();
+        $this->reset(['wordName', 'wordDescription', 'selectedTagIds']);
         $this->resetValidation();
         //resetValidation() : livewireのメソッド、バリデーションのエラーメッセージをクリアする
         //変数とプロパティの違い：プロパティはクラスやオブジェクトに属する変数、変数はクラスやオブジェクトに属さない、データを保持するもの
@@ -109,29 +123,32 @@ new #[Layout('layouts.words-app')] class extends Component
     }
 
     //-----------------------------------------------------
-    // タグ選択関連　tags.check-listとのみ連携
+    // タグ選択関連　
     //-----------------------------------------------------
-    # 選択したタグのid(配列型)を渡される 
-    #[On('return-selected-tag-ids')]
-    public function loadSelectedTags(array $selectedTagIds)
+    # selectedTagIdsが更新されると実行　例　タグ選択モーダルを閉じる、フォームをクリアする
+    /**
+     * updated[プロパティ名]():  Livewireの機能、指定のプロパティが更新されたとき自動で実行されるメソッドを定義できる
+    */
+    public function updatedSelectedTagIds()
     {
         # 引数がnullまたは空なら、処理を中断する
-        if (empty($selectedTagIds)) {
+        if (empty($this->selectedTagIds)) {
             $this->selectedTags = collect(); //空のコレクションを返す
             return;
         }
 
         //引数のタグidをもつタグコレクションを取得
-        $this->selectedTags = Tag::whereIn('id', $selectedTagIds)->get();
+        $this->selectedTags = Tag::whereIn('id', $this->selectedTagIds)->get();
     }
 }; ?>
 
 
 
-<div class="container-md" x-data="{ showModal: false }" x-on:open-words-create-modal.window="showModal = true"
+<div class="container-md" x-data="{ showModal: false, tagSelectMode: false }" x-on:open-words-create-modal.window="showModal = true"
     x-on:close-all-modal.window="showModal = false">
 
-    <div x-show="showModal">
+    <!-- モーダル部 -->
+    <section x-show="showModal">
 
         <div class="modal d-block" tabindex="-1">
             <div class="modal-dialog modal-fullscreen">
@@ -143,13 +160,13 @@ new #[Layout('layouts.words-app')] class extends Component
 
                         <!-- ヘッダー左側 -->
                         <div class="d-flex align-items-center">
-                            
+
                             <!-- 戻るボタン ※フォーム送信機能をもつ-->
                             {{-- 
-                            ** form要素外にあるinput要素やsubmit属性をもつbutton要素はform要素と連動しないが、以下の属性を使用すると関連付けれる
-                            * form="form要素のid": 、form属性を使用することで任意のform要素に関連付けれる
-                            --}}
-                            <x-back-button type="submit" form="create-word-form"/>
+                                ** form要素外にあるinput要素やsubmit属性をもつbutton要素はform要素と連動しないが、以下の属性を使用すると関連付けれる
+                                * form="form要素のid": 、form属性を使用することで任意のform要素に関連付けれる
+                                --}}
+                            <x-back-button type="submit" form="create-word-form" />
 
                             <span class="fs-5 fw-bold">新規作成</span>
                         </div>
@@ -157,37 +174,36 @@ new #[Layout('layouts.words-app')] class extends Component
                         <!-- ヘッダー右側 -->
                         <div>
                             <!-- タグ選択ボタン -->
-                            <button type="button" class="btn btn-outline-primary" x-on:click="$dispatch('open-tags-check-list')">
+                            <button type="button" class="btn btn-outline-primary"
+                                x-on:click="tagSelectMode = true">
                                 <span>タグ選択</span>
                             </button>
-                            <!-- タグ選択リストモーダル -->
-                            @livewire('pages.tags.check-list')
                         </div>
                     </header>
 
                     <!-- ボディ部 -->
                     {{-- 
-                    * mx-2 mb-2: 入力フィールドが画面端まで広がらないように制限
-                    * d-flex flex-grow-1 w-100: flex-grow-1で縦方向に要素を広げ、w-100で横方向にも広げる
-                    --}}
+                        * mx-2 mb-2: 入力フィールドが画面端まで広がらないように制限
+                        * d-flex flex-grow-1 w-100: flex-grow-1で縦方向に要素を広げ、w-100で横方向にも広げる
+                        --}}
                     <div class="modal-body d-flex flex-grow-1 flex-column mx-2 mb-2 bg-white">
-                        
+
                         <form id="create-word-form" class="d-flex flex-column w-100" wire:submit.prevent="createWord">
 
                             <!-- 語句名フィールド -->
                             <div>
-                                <x-form-input wire:model="wordName"/>
+                                <x-form-input wire:model="wordName" />
                             </div>
 
                             <!-- 説明フィールド -->
                             {{-- 
-                            * min-height: 30vh : textarea要素の初期表示時の大きさを設定する
-                            --}}
+                                * min-height: 30vh : textarea要素の初期表示時の大きさを設定する
+                                --}}
                             <div class="mt-3">
-                                <x-form-textarea wire:model="wordDescription"/>
+                                <x-form-textarea wire:model="wordDescription" />
                             </div>
                         </form>
-                        
+
                         <!-- タグ一覧 -->
                         <div class="mt-3">
                             @foreach ($this->selectedTags as $selectedTag)
@@ -200,5 +216,43 @@ new #[Layout('layouts.words-app')] class extends Component
                 </div>
             </div>
         </div>
-    </div>
+    </section>
+
+    <!-- タグ選択モーダル -->
+    <section x-show="tagSelectMode">
+        <div class="modal d-block" tabindex="-1">
+            <div class="modal-dialog modal-fullscreen">
+                <div class="modal-content">
+
+                    <!-- ヘッダー部 -->
+                    <header class="modal-header d-flex align-items-center p-2">
+                        <!--戻るボタン-->
+                        <button type="button" class="btn btn-link text-dark border-0 p-0 m-2" 
+                            x-on:click="tagSelectMode = false">
+                            <i class="bi bi-arrow-left fs-4"></i>
+                        </button>
+
+                        <h5 class="modal-title mb-0">タグ</h5>
+                    </header>
+
+                    <!-- ボディ部 -->
+                    <div class="modal-body">
+                        <!-- チェックリスト -->
+                        @foreach ($this->tags as $tag)
+                            <div class="form-check" wire:key="{{ $tag->id }}">
+                                <!-- 選択したタグのidをselectedTagIdsに格納する -->
+                                <!-- value属性で選択したタグのidを値とし、wire:model.liveでselectedTagIdsに即時同期する -->
+                                <input type="checkbox" wire:model.live="selectedTagIds" name="selectedTagIds[]"
+                                    value="{{ $tag->id }}" id="{{ $tag->id }}" class="form-check-input">
+                                
+                                <label for="{{ $tag->id }}" class="form-check-label">
+                                    {{ $tag->tag_name }}
+                                </label>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+    </section>
+
 </div>
