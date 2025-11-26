@@ -74,6 +74,8 @@ new #[Layout('layouts.words-app')] class extends Component
 
             # パスワードリセットイベントを発火
             event(new PasswordReset($user));
+
+            return Password::PASSWORD_RESET;
         });
 
         /** 

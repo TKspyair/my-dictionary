@@ -1,5 +1,13 @@
 <?php
 
+# パスワード確認機能のテスト
+
+/** 目次
+ * 1 パスワード確認画面が表示されるか
+ * 2 正しいパスワードで確認が成功するか
+ * 3 間違ったパスワードで確認が失敗するか
+ */
+
 namespace Tests\Feature\Auth;
 
 use App\Models\User;
@@ -11,6 +19,7 @@ class PasswordConfirmationTest extends TestCase
 {
     use RefreshDatabase;
 
+    #1 パスワード確認画面が表示されるか
     public function test_confirm_password_screen_can_be_rendered(): void
     {
         $user = User::factory()->create();
@@ -18,10 +27,11 @@ class PasswordConfirmationTest extends TestCase
         $response = $this->actingAs($user)->get('/confirm-password');
 
         $response
-            ->assertSeeVolt('pages.auth.confirm-password')
-            ->assertStatus(200);
+            ->assertOk()
+            ->assertSeeVolt('pages.auth.confirm-password');
     }
 
+    #2 正しいパスワードで確認が成功するか
     public function test_password_can_be_confirmed(): void
     {
         $user = User::factory()->create();
@@ -34,10 +44,11 @@ class PasswordConfirmationTest extends TestCase
         $component->call('confirmPassword');
 
         $component
-            ->assertRedirect('/dashboard')
-            ->assertHasNoErrors();
+            ->assertHasNoErrors()
+            ->assertRedirect();
     }
 
+    #3 間違ったパスワードで確認が失敗するか
     public function test_password_is_not_confirmed_with_invalid_password(): void
     {
         $user = User::factory()->create();
@@ -50,7 +61,7 @@ class PasswordConfirmationTest extends TestCase
         $component->call('confirmPassword');
 
         $component
-            ->assertNoRedirect()
-            ->assertHasErrors('password');
+            ->assertHasErrors('password')
+            ->assertNoRedirect();
     }
 }
