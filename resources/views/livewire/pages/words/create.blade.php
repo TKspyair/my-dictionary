@@ -1,5 +1,12 @@
 <?php
 
+/** TODO: タグ選択だけしてモーダルを閉じて、再度モーダルを開くときに、選択したタグが表示されたままになるのを、clearForm内で無理やり対処している
+ * →　モーダル再表示時にDOMが更新されるようになっている
+ * 改善案: モーダルを閉じる前に更新されるようにしたい
+ * メリット: ロジックがわかりやすくなる
+ * デメリット: Alpainでモーダルを閉じれなくなり、ページ遷移速度が落ちる
+*/
+
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Collection;
 use App\Models\User;
@@ -10,8 +17,7 @@ use Livewire\Attributes\On;
 use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
 
-new #[Layout('layouts.words-app')] class extends Component 
-{
+new #[Layout('layouts.words-app')] class extends Component {
     //======================================================================
     // プロパティ
     //======================================================================
@@ -71,26 +77,26 @@ new #[Layout('layouts.words-app')] class extends Component
     {
         # 語句名と説明どちらも未入力なら登録処理を中断する
         if (empty($this->wordName) && empty($this->wordDescription)) {
-            $this->clearForm();
 
             #  空のメッセージを削除したというメッセージを表示するイベントの発火
             /**
+             * ユーザーに空のメモを削除したことを早く伝えるために、最初に実行
              * message: フラッシュメッセージの内容
              * type: フラッシュメッセージの色指定(例: info →　青)
              */
             $this->dispatch('flash-message', message: '空のメモを削除しました', type: 'dark');
 
+            $this->clearForm();
             return;
         }
 
         #　説明が記述されているが語句名が空の場合、語句名を「未入力」とする
-        if (empty($this->wordName) && !empty($this->wordDescription)) {
+        if (empty($this->wordName) && !empty($this->wordDescription)) 
+        {
             $this->wordName = '未入力';
         }
 
         $validated = $this->validate();
-
-        $this->dispatch('close-all-modal');
 
         $word = Word::create([
             'word_name' => $validated['wordName'],
@@ -114,26 +120,32 @@ new #[Layout('layouts.words-app')] class extends Component
     # フォームをクリア
     public function clearForm()
     {
+
         $this->reset(['wordName', 'wordDescription', 'selectedTagIds']);
+        
+        /** $this->selectedTagsをclearForm内でわざわざ初期化する理由
+         * $this->selectedTagIdsをリセットすると、連動してupdatedSelectedTagIdsが実行され、selectedTagsもリセットされるが、
+         * DOMの更新タイミングがモーダルを閉じた後のため、selectedTagsの更新がDOMに反映されない
+         * (再度新規登録モーダルを開いたときにリセットしたはずのタグが表示されたままになる)
+         * 
+         * ※wordNameとwordDescriptionはwire:modelで直接プロパティの状態を反映するため、影響を受けてないように見える
+        */
+        $this->selectedTags = collect(); 
         $this->resetValidation();
-        //resetValidation() : livewireのメソッド、バリデーションのエラーメッセージをクリアする
-        //変数とプロパティの違い：プロパティはクラスやオブジェクトに属する変数、変数はクラスやオブジェクトに属さない、データを保持するもの
-        //関数とメソッドの違い：メソッドはクラスやオブジェクトに属する、関数はクラスやオブジェクトに属さない、処理を行うもの
-        //reset()はプロパティに対して動作するメソッドなので、'プロパティ名'を引数に渡す
     }
 
     //-----------------------------------------------------
-    // タグ選択関連　
+    // タグ選択関連
     //-----------------------------------------------------
     # selectedTagIdsが更新されると実行　例　タグ選択モーダルを閉じる、フォームをクリアする
     /**
      * updated[プロパティ名]():  Livewireの機能、指定のプロパティが更新されたとき自動で実行されるメソッドを定義できる
-    */
+     */
     public function updatedSelectedTagIds()
     {
         # 引数がnullまたは空なら、処理を中断する
         if (empty($this->selectedTagIds)) {
-            $this->selectedTags = collect(); //空のコレクションを返す
+            $this->selectedTags = collect(); 
             return;
         }
 
@@ -166,7 +178,9 @@ new #[Layout('layouts.words-app')] class extends Component
                                 ** form要素外にあるinput要素やsubmit属性をもつbutton要素はform要素と連動しないが、以下の属性を使用すると関連付けれる
                                 * form="form要素のid": 、form属性を使用することで任意のform要素に関連付けれる
                                 --}}
-                            <x-back-button type="submit" form="create-word-form" />
+                            <button type="submit" form="create-word-form" x-on:click="showModal = false" class="btn btn-link text-dark border-0 p-0 m-2">
+                                <i class="bi bi-arrow-left fs-4"></i>
+                            </button>
 
                             <span class="fs-5 fw-bold">新規作成</span>
                         </div>
@@ -174,8 +188,7 @@ new #[Layout('layouts.words-app')] class extends Component
                         <!-- ヘッダー右側 -->
                         <div>
                             <!-- タグ選択ボタン -->
-                            <button type="button" class="btn btn-outline-primary"
-                                x-on:click="tagSelectMode = true">
+                            <button type="button" class="btn btn-outline-primary" x-on:click="tagSelectMode = true">
                                 <span>タグ選択</span>
                             </button>
                         </div>
@@ -227,7 +240,7 @@ new #[Layout('layouts.words-app')] class extends Component
                     <!-- ヘッダー部 -->
                     <header class="modal-header d-flex align-items-center p-2">
                         <!--戻るボタン-->
-                        <button type="button" class="btn btn-link text-dark border-0 p-0 m-2" 
+                        <button type="button" class="btn btn-link text-dark border-0 p-0 m-2"
                             x-on:click="tagSelectMode = false">
                             <i class="bi bi-arrow-left fs-4"></i>
                         </button>
@@ -237,14 +250,14 @@ new #[Layout('layouts.words-app')] class extends Component
 
                     <!-- ボディ部 -->
                     <div class="modal-body">
-                        <!-- チェックリスト -->
+                        <!-- タグ選択リスト -->
                         @foreach ($this->tags as $tag)
                             <div class="form-check" wire:key="{{ $tag->id }}">
                                 <!-- 選択したタグのidをselectedTagIdsに格納する -->
                                 <!-- value属性で選択したタグのidを値とし、wire:model.liveでselectedTagIdsに即時同期する -->
                                 <input type="checkbox" wire:model.live="selectedTagIds" name="selectedTagIds[]"
                                     value="{{ $tag->id }}" id="{{ $tag->id }}" class="form-check-input">
-                                
+
                                 <label for="{{ $tag->id }}" class="form-check-label">
                                     {{ $tag->tag_name }}
                                 </label>
