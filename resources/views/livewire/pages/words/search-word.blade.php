@@ -29,7 +29,7 @@ new #[Layout('layouts.words-app')] class extends Component
     //リスト内の語句をクリック時に実行
     public function sendWord(Word $word): void
     {
-        $this->dispatch('open-words-detail-and-edit-modal', word: $word)
+        $this->dispatch('send-word', word: $word)
         ->to('pages.words.detail-edit');
     }
 }; ?>

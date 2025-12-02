@@ -122,7 +122,7 @@ new #[Layout('layouts.words-app')] class extends Component
      * >> empty()のチェックをすり抜けてしまうため、nullチェック(![引数])を行う
      */
     # 語句のインスタンスを受け取り、その語句の詳細ページ(モーダル)を開く処理
-    #[On('send-word-instance')]
+    #[On('send-word')]
     public function openWordDetailModal(Word $word): void
     {
         if (!$word) {

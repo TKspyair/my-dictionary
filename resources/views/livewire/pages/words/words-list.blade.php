@@ -150,9 +150,9 @@ new #[Layout('layouts.words-app')] class extends Component
      * - 語句リストの語句名をクリック時に実行
      * - クリックした語句名のモデルインスタンスをwords.detail-editに送信
      */
-    public function sendWordInstance(Word $word): void
+    public function sendWord(Word $word): void
     {
-        $this->dispatch('send-word-instance', word: $word)->to('pages.words.detail-edit');
+        $this->dispatch('send-word', word: $word)->to('pages.words.detail-edit');
     }
 
     //-----------------------------------------------------
@@ -408,7 +408,7 @@ new #[Layout('layouts.words-app')] class extends Component
             @foreach ($this->Words as $word)
                 <li class="list-group-item d-flex justify-content-between align-items-center"
                     wire:key="{{ $word->id }}">
-                    <button wire:click="sendWordInstance({{ $word }})"
+                    <button wire:click="sendWord({{ $word }})"
                         class="btn btn-link text-dark border-0 p-0 mb-0 text-decoration-none">
                         {{ $word->word_name }}
                     </button>
