@@ -31,6 +31,8 @@ new #[Layout('layouts.words-app')] class extends Component
     {
         $this->dispatch('send-word', word: $word)
         ->to('pages.words.detail-edit');
+
+        $this->reset('search');
     }
 }; ?>
 
