@@ -199,7 +199,7 @@ new #[Layout('layouts.words-app')] class extends Component
         $this->filterWordName = '';
         $this->filterBeginDate = '';
         $this->filterEndDate = '';
-        $this->filterSelectedTagIds = [];
+        $this->selectedTagIds = [];
 
     }
 }; ?>
@@ -327,9 +327,9 @@ new #[Layout('layouts.words-app')] class extends Component
 
                                         <!-- タグ選択 -->
                                         {{-- 
-                                NOTE:
-                                * flex-wrapでタグを左詰めで自動改行するように表示する
-                                --}}
+                                        NOTE:
+                                        * flex-wrapでタグを左詰めで自動改行するように表示する
+                                        --}}
                                         <div class="d-flex flex-wrap mt-3">
                                             @foreach ($this->tags as $tag)
                                                 <div class="me-3 mb-3" x-data="{ isSelected: false }"
