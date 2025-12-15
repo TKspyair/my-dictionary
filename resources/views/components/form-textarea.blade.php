@@ -3,11 +3,14 @@
 ** resize() { $el.style.height = 'auto'; $el.style.height = $el.scrollHeight + 'px'}
 * 1 $el.style.height = 'auto': 要素の大きさを初期値(min-height: 30vh;)に設定
 * 2 $el.style.height = $el.scrollHeight + 'px': 要素の大きさをコンテンツ(入力値)に合わせて調整する
+
+* x-effect: x-dataで定義したプロパティが更新されると実行
 --}}
 <textarea {{ $attributes->merge(['class' => 'flex-grow-1 p-0 form-control']) }} placeholder="説明" style="min-height: 30vh;"
-    x-data="{ resize() { $el.style.height = 'auto'; $el.style.height = $el.scrollHeight + 'px'} }"
+    x-data="{ resize() { $el.style.height = 'auto'; $el.style.height = $el.scrollHeight + 'px'}, wordDescription: $wire.entangle('wordDescription')}"
     x-init="resize()"
-    x-on:input="resize()">
+    x-on:input="resize()"
+    x-effect="wordDescription; resize()">
 </textarea>
 
 {{-- JavaScriptの記法について

@@ -5,7 +5,7 @@
  * 改善案: モーダルを閉じる前に更新されるようにしたい
  * メリット: ロジックがわかりやすくなる
  * デメリット: Alpainでモーダルを閉じれなくなり、ページ遷移速度が落ちる
-*/
+ */
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Collection;
@@ -16,8 +16,11 @@ use Illuminate\Validation\Rule;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
+use Gemini\Client;
 
-new #[Layout('layouts.words-app')] class extends Component {
+
+new #[Layout('layouts.words-app')] class extends Component 
+{
     //======================================================================
     // プロパティ
     //======================================================================
@@ -34,6 +37,8 @@ new #[Layout('layouts.words-app')] class extends Component {
     # 選択されたタグのコレクション
     public $selectedTags;
 
+
+
     //======================================================================
     // 初期化
     //======================================================================
@@ -43,6 +48,7 @@ new #[Layout('layouts.words-app')] class extends Component {
         #プロパティの宣言時には空のコレクションを入れられないので、ここで代入
         $this->selectedTags = collect();
         $this->loadTags();
+
     }
 
     // タグ一覧の更新
@@ -77,7 +83,6 @@ new #[Layout('layouts.words-app')] class extends Component {
     {
         # 語句名と説明どちらも未入力なら登録処理を中断する
         if (empty($this->wordName) && empty($this->wordDescription)) {
-
             #  空のメッセージを削除したというメッセージを表示するイベントの発火
             /**
              * ユーザーに空のメモを削除したことを早く伝えるために、最初に実行
@@ -91,8 +96,7 @@ new #[Layout('layouts.words-app')] class extends Component {
         }
 
         #　説明が記述されているが語句名が空の場合、語句名を「未入力」とする
-        if (empty($this->wordName) && !empty($this->wordDescription)) 
-        {
+        if (empty($this->wordName) && !empty($this->wordDescription)) {
             $this->wordName = '未入力';
         }
 
@@ -120,17 +124,16 @@ new #[Layout('layouts.words-app')] class extends Component {
     # フォームをクリア
     public function clearForm()
     {
-
         $this->reset(['wordName', 'wordDescription', 'selectedTagIds']);
-        
+
         /** $this->selectedTagsをclearForm内でわざわざ初期化する理由
          * $this->selectedTagIdsをリセットすると、連動してupdatedSelectedTagIdsが実行され、selectedTagsもリセットされるが、
          * DOMの更新タイミングがモーダルを閉じた後のため、selectedTagsの更新がDOMに反映されない
          * (再度新規登録モーダルを開いたときにリセットしたはずのタグが表示されたままになる)
-         * 
+         *
          * ※wordNameとwordDescriptionはwire:modelで直接プロパティの状態を反映するため、影響を受けてないように見える
-        */
-        $this->selectedTags = collect(); 
+         */
+        $this->selectedTags = collect();
         $this->resetValidation();
     }
 
@@ -145,12 +148,42 @@ new #[Layout('layouts.words-app')] class extends Component {
     {
         # 引数がnullまたは空なら、処理を中断する
         if (empty($this->selectedTagIds)) {
-            $this->selectedTags = collect(); 
+            $this->selectedTags = collect();
             return;
         }
 
         //引数のタグidをもつタグコレクションを取得
         $this->selectedTags = Tag::whereIn('id', $this->selectedTagIds)->get();
+    }
+
+    #　geminiで語句の説明を自動生成する
+    /** $yourApikeyと$clientをメソッド内でのみ使用する理由
+     * 1. このメソッド以外で使用しないから
+     * 2. Livewireのシリアライズ(デハイドレーション)に対応しておらず、エラーが出るから
+     * > Livewireのサポートしていないライブラリでクライアントインスタンスを実装していて
+     * publicで定義するとシリアライズできずにエラー発生、privateで定義すると$clientがnullになりエラーが出るため、どちらも実装できない
+    */
+    public function generateGeminiText()
+    {
+        # 語句名未入力の場合、実行しない
+        if(empty($this->wordName)){
+            return;
+        }
+
+        $yourApiKey = env('GEMINI_API_KEY');
+        
+        # APIと通信するクライアントのインスタンスを作成
+        $client = Gemini::client($yourApiKey);
+
+        $prompt = "{$this->wordName}についての説明文を作成してください。
+        出力はそのままメモに挿入するため、マークダウン形式にはしないでください。
+        口上は排除して、{$this->wordName}の説明のみを出力してください。
+        ";
+
+        # 使用するGeminiのモデルを指定し、引数を元にコンテンツを生成する
+        $result = $client->generativeModel(model: 'gemini-2.0-flash')->generateContent($prompt);
+
+        $this->wordDescription = $result->text();
     }
 }; ?>
 
@@ -178,11 +211,13 @@ new #[Layout('layouts.words-app')] class extends Component {
                                 ** form要素外にあるinput要素やsubmit属性をもつbutton要素はform要素と連動しないが、以下の属性を使用すると関連付けれる
                                 * form="form要素のid": 、form属性を使用することで任意のform要素に関連付けれる
                                 --}}
-                            <button type="submit" form="create-word-form" x-on:click="showModal = false" class="btn btn-link text-dark border-0 p-0 m-2">
+                            <button type="submit" form="create-word-form" x-on:click="showModal = false"
+                                class="btn btn-link text-dark border-0 p-0 m-2">
                                 <i class="bi bi-arrow-left fs-4"></i>
                             </button>
 
                             <span class="fs-5 fw-bold">新規作成</span>
+
                         </div>
 
                         <!-- ヘッダー右側 -->
@@ -204,8 +239,12 @@ new #[Layout('layouts.words-app')] class extends Component {
                         <form id="create-word-form" class="d-flex flex-column w-100" wire:submit.prevent="createWord">
 
                             <!-- 語句名フィールド -->
-                            <div>
+                            <div class="d-flex justify-content-between">
                                 <x-form-input wire:model="wordName" />
+
+                                <button type="button" class="border-0 bg-transparent" wire:click="generateGeminiText">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
                             </div>
 
                             <!-- 説明フィールド -->
@@ -224,7 +263,8 @@ new #[Layout('layouts.words-app')] class extends Component {
                                     {{ $selectedTag->tag_name }}
                                 </span>
                             @endforeach
-                        </diV>
+                        </div>
+
                     </div>
                 </div>
             </div>
