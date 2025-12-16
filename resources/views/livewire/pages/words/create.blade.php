@@ -37,7 +37,6 @@ new #[Layout('layouts.words-app')] class extends Component
     # 選択されたタグのコレクション
     public $selectedTags;
 
-    $yourApiKey = env('GEMINI_API_KEY');
 
     //======================================================================
     // 初期化
