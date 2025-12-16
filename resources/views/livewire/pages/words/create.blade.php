@@ -37,7 +37,7 @@ new #[Layout('layouts.words-app')] class extends Component
     # 選択されたタグのコレクション
     public $selectedTags;
 
-
+    $yourApiKey = env('GEMINI_API_KEY');
 
     //======================================================================
     // 初期化
@@ -156,12 +156,18 @@ new #[Layout('layouts.words-app')] class extends Component
         $this->selectedTags = Tag::whereIn('id', $this->selectedTagIds)->get();
     }
 
+    //-----------------------------------------------------
+    // Gemini関連
+    //-----------------------------------------------------
     #　geminiで語句の説明を自動生成する
-    /** $yourApikeyと$clientをメソッド内でのみ使用する理由
+    /** $clientをメソッド内でのみ使用する理由
      * 1. このメソッド以外で使用しないから
      * 2. Livewireのシリアライズ(デハイドレーション)に対応しておらず、エラーが出るから
      * > Livewireのサポートしていないライブラリでクライアントインスタンスを実装していて
      * publicで定義するとシリアライズできずにエラー発生、privateで定義すると$clientがnullになりエラーが出るため、どちらも実装できない
+     * 
+     ** $yourApiKey
+     * これはAPIキーを扱うため、メソッド内での定義にとどめる
     */
     public function generateGeminiText()
     {
@@ -170,11 +176,13 @@ new #[Layout('layouts.words-app')] class extends Component
             return;
         }
 
+        # GeminiAPIキーの取得
         $yourApiKey = env('GEMINI_API_KEY');
         
         # APIと通信するクライアントのインスタンスを作成
         $client = Gemini::client($yourApiKey);
 
+        #　出力形式の指定
         $prompt = "{$this->wordName}についての説明文を作成してください。
         出力はそのままメモに挿入するため、マークダウン形式にはしないでください。
         口上は排除して、{$this->wordName}の説明のみを出力してください。
@@ -182,8 +190,10 @@ new #[Layout('layouts.words-app')] class extends Component
 
         # 使用するGeminiのモデルを指定し、引数を元にコンテンツを生成する
         $result = $client->generativeModel(model: 'gemini-2.0-flash')->generateContent($prompt);
-
         $this->wordDescription = $result->text();
+
+        # テキストエリアの大きさを生成されたテキストに合わせる(x-form-textareaへの命令)
+        $this->dispatch('textarea-resize');
     }
 }; ?>
 

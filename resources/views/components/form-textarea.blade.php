@@ -7,10 +7,10 @@
 * x-effect: x-dataで定義したプロパティが更新されると実行
 --}}
 <textarea {{ $attributes->merge(['class' => 'flex-grow-1 p-0 form-control']) }} placeholder="説明" style="min-height: 30vh;"
-    x-data="{ resize() { $el.style.height = 'auto'; $el.style.height = $el.scrollHeight + 'px'}, wordDescription: $wire.entangle('wordDescription')}"
+    x-data="{ resize() { $el.style.height = 'auto'; $el.style.height = $el.scrollHeight + 'px'} }"
     x-init="resize()"
     x-on:input="resize()"
-    x-effect="wordDescription; resize()">
+    x-on:textarea-resize="resize()">
 </textarea>
 
 {{-- JavaScriptの記法について
