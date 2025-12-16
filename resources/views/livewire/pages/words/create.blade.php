@@ -190,9 +190,6 @@ new #[Layout('layouts.words-app')] class extends Component
         # 使用するGeminiのモデルを指定し、引数を元にコンテンツを生成する
         $result = $client->generativeModel(model: 'gemini-2.0-flash')->generateContent($prompt);
         $this->wordDescription = $result->text();
-
-        # テキストエリアの大きさを生成されたテキストに合わせる(x-form-textareaへの命令)
-        $this->dispatch('textarea-resize');
     }
 }; ?>
 
