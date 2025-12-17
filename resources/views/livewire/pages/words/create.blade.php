@@ -242,13 +242,16 @@ new #[Layout('layouts.words-app')] class extends Component
                         --}}
                     <div class="modal-body d-flex flex-grow-1 flex-column mx-2 mb-2 bg-white">
 
-                        <form id="create-word-form" class="d-flex flex-column w-100" wire:submit.prevent="createWord">
+                        <form id="create-word-form" class="position-relative d-flex flex-column w-100" wire:submit.prevent="createWord">
 
                             <!-- 語句名フィールド -->
                             <div class="d-flex justify-content-between">
                                 <x-form-input wire:model="wordName" />
 
-                                <button type="button" class="border-0 bg-transparent" wire:click="generateGeminiText">
+                                <!-- 説明文自動生成ボタン -->
+                                <button type="button" class="custom-tooltip border-0 bg-transparent" 
+                                    tooltip-text="説明文を自動生成"
+                                    wire:click="generateGeminiText">
                                     <i class="bi bi-pencil"></i>
                                 </button>
                             </div>
@@ -260,17 +263,17 @@ new #[Layout('layouts.words-app')] class extends Component
                             <div class="mt-3">
                                 <x-form-textarea wire:model="wordDescription" />
                             </div>
+                        
+
+                            <!-- タグ一覧 -->
+                            <div class="postion-absolute top-0 mt-3">
+                                @foreach ($this->selectedTags as $selectedTag)
+                                    <span class="badge bg-secondary me-2 mb-2 p-2" wire:key="{{ $selectedTag->id }}">
+                                        {{ $selectedTag->tag_name }}
+                                    </span>
+                                @endforeach
+                            </div>
                         </form>
-
-                        <!-- タグ一覧 -->
-                        <div class="mt-3">
-                            @foreach ($this->selectedTags as $selectedTag)
-                                <span class="badge bg-secondary me-2 mb-2 p-2" wire:key="{{ $selectedTag->id }}">
-                                    {{ $selectedTag->tag_name }}
-                                </span>
-                            @endforeach
-                        </div>
-
                     </div>
                 </div>
             </div>

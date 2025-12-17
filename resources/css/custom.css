@@ -7,3 +7,34 @@
 }
 /*  !important : CSSを強制適用する
 */
+
+/* ツールチップのコンテナ(ボタンの真上に固定) */
+.custom-tooltip {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+}
+
+/* ツールチップの本体 */
+.custom-tooltip::before {
+    content: attr(tooltip-text); /* data-tooltip属性からテキストを取得 */
+    position: absolute;
+    top: 100%; 
+    right: 20%;
+    padding: 4px 8px;
+    border-radius: 4px;
+    background-color: #0d6efd;
+    color: #fff;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease;
+    z-index: 1000;
+}
+
+/* ホバー時に表示 */
+.custom-tooltip:hover::before {
+    opacity: 1;
+    visibility: visible;
+}

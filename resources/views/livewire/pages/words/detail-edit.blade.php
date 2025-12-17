@@ -106,6 +106,7 @@ new #[Layout('layouts.words-app')] class extends Component
         # 全モーダルを閉じる
         $this->dispatch('close-all-modal');
 
+
         # Wordコレクションの更新
         $this->dispatch('update-words');
     }
@@ -180,7 +181,7 @@ new #[Layout('layouts.words-app')] class extends Component
             <div class="modal-dialog modal-fullscreen">
 
                 <div class="modal-content">
- 
+
                     <!-- 一覧と編集の切り替え部 -->
                     <article x-show="!editMode">
                         <!-- ヘッダー部 -->

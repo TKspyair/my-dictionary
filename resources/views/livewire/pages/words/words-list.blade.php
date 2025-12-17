@@ -103,7 +103,7 @@ new #[Layout('layouts.words-app')] class extends Component
             }
 
             /** NOTE: whereDate()について
-             * 基本構文: whereDate(string カラム名, string 比較演算子, string 日付の値(YYYY-mm-dd))
+             * whereDate(string カラム名, string 比較演算子, string 日付の値(YYYY-mm-dd))
              * 採用理由:
              * > created_atは日付と時刻のデータをもち、where()で日付を比較しようとすると時刻部分も考慮され意図しない結果になることがあるため
              *   時刻データを切り捨て、日時データのみを取得するwhereDate()を使用する
@@ -133,10 +133,10 @@ new #[Layout('layouts.words-app')] class extends Component
             }
         }
 
-        # 条件に適応した語句を10件ずつページネーションで表示
         return $query->orderBy($this->sortColumn, $this->sortDirection)->paginate(15);
     }
 
+    
     //======================================================================
     // method(メソッド)
     //======================================================================
@@ -150,7 +150,7 @@ new #[Layout('layouts.words-app')] class extends Component
      * - クリックした語句名のモデルインスタンスをwords.detail-editに送信
      */
     public function sendWord(Word $word): void
-    {
+    {   
         $this->dispatch('send-word', word: $word)->to('pages.words.detail-edit');
     }
 
@@ -169,7 +169,6 @@ new #[Layout('layouts.words-app')] class extends Component
             $this->sortDirection = 'desc';
         }
 
-        # 最初のページに戻る
         $this->resetPage();
     }
 
@@ -407,6 +406,7 @@ new #[Layout('layouts.words-app')] class extends Component
             @foreach ($this->Words as $word)
                 <li class="list-group-item d-flex justify-content-between align-items-center"
                     wire:key="{{ $word->id }}">
+                    {{-- idのみをメソッドに渡す --}}
                     <button wire:click="sendWord({{ $word }})"
                         class="btn btn-link text-dark border-0 p-0 mb-0 text-decoration-none">
                         {{ $word->word_name }}
