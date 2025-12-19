@@ -195,7 +195,7 @@ new #[Layout('layouts.words-app')] class extends Component
 
 
 
-<div class="container-md" x-data="{ showModal: false, tagSelectMode: false }" x-on:open-words-create-modal.window="showModal = true"
+<div class="container-md" x-data="{ showModal: false, tagSelectMode: false , showTooltip: true }" x-on:open-words-create-modal.window="showModal = true"
     x-on:close-all-modal.window="showModal = false">
 
     <!-- モーダル部 -->
@@ -249,8 +249,10 @@ new #[Layout('layouts.words-app')] class extends Component
                                 <x-form-input wire:model="wordName" />
 
                                 <!-- 説明文自動生成ボタン -->
-                                <button type="button" class="custom-tooltip border-0 bg-transparent" 
+                                <button type="button" class="border-0 bg-transparent" 
                                     tooltip-text="説明文を自動生成"
+                                    x-on:click="showTooltip = false"
+                                    x-bind:class="{ 'custom-tooltip' : showTooltip }"
                                     wire:click="generateGeminiText">
                                     <i class="bi bi-pencil"></i>
                                 </button>
@@ -261,7 +263,7 @@ new #[Layout('layouts.words-app')] class extends Component
                                 * min-height: 30vh : textarea要素の初期表示時の大きさを設定する
                                 --}}
                             <div class="mt-3">
-                                <x-form-textarea wire:model="wordDescription" />
+                                <x-form-textarea wire:model="wordDescription" x-on:click="showTooltip = false"/>
                             </div>
                         
 

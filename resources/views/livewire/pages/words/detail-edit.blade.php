@@ -233,7 +233,11 @@ new #[Layout('layouts.words-app')] class extends Component
 
                                 <!-- 説明フィールド -->
                                 <div class="mt-3">
-                                    <p class="flex-grow-1 p-0 text-break">{{ $this->wordDescription }}</p>
+                                    {{-- **white-space: pre-wrap**: 改行コードをそのまま出力する 
+                                    * Pタグ内での改行禁止!
+                                    * > pタグ内で改行すると、画面表示時に改行が反映されてしまう
+                                    --}}
+                                    <p class="flex-grow-1 p-0 text-break" style="white-space: pre-wrap; ">{{ $this->wordDescription }}</p>
                                 </div>
 
                                 <!-- タグ一覧 -->

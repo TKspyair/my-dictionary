@@ -27,14 +27,5 @@
     color: #fff;
     font-size: 12px;
     white-space: nowrap;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.2s ease;
     z-index: 1000;
-}
-
-/* ホバー時に表示 */
-.custom-tooltip:hover::before {
-    opacity: 1;
-    visibility: visible;
 }
