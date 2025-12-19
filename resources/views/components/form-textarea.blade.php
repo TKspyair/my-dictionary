@@ -12,7 +12,8 @@
         $el.style.height = 'auto'; $el.style.height = $el.scrollHeight + 'px', 0 }); },
         wordDescription: $wire.entangle('wordDescription') }"
     x-init="resize()"
-    x-effect="wordDescription; resize()">
+    x-effect="wordDescription; resize()"
+    x-on:input="resize()">
 </textarea>
 
 {{-- JavaScriptの記法について

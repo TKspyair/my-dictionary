@@ -16,6 +16,8 @@ use Illuminate\Validation\Rule;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
+use Livewire\Attributes\Computed;
+
 use Gemini\Client;
 
 
@@ -31,26 +33,27 @@ new #[Layout('layouts.words-app')] class extends Component
     //ユーザーのもつ全てのTagコレクション
     public $tags;
 
-    //チェックしたタグのid
+    # 選択したタグのid
     public $selectedTagIds = [];
 
-    # 選択されたタグのコレクション
-    public $selectedTags;
-
-
+    # 選択したタグのコレクション
+    #[Computed]
+    public function selectedTags()
+    {
+        /** 引数の値が空の場合の処理がない理由 
+         * whereInは空の値を渡されたときに、空のコレクションを返すため */
+        return Tag::whereIn('id', $this->selectedTagIds)->get();
+    }
     //======================================================================
     // 初期化
     //======================================================================
 
     public function mount()
     {
-        #プロパティの宣言時には空のコレクションを入れられないので、ここで代入
-        $this->selectedTags = collect();
         $this->loadTags();
-
     }
 
-    // タグ一覧の更新
+    # タグのセット、更新
     #[On('update-tag-list')]
     public function loadTags(): void
     {
@@ -82,8 +85,7 @@ new #[Layout('layouts.words-app')] class extends Component
     {
         # 語句名と説明どちらも未入力なら登録処理を中断する
         if (empty($this->wordName) && empty($this->wordDescription)) {
-            #  空のメッセージを削除したというメッセージを表示するイベントの発火
-            /**
+            /** 'flash-message'イベントの発火
              * ユーザーに空のメモを削除したことを早く伝えるために、最初に実行
              * message: フラッシュメッセージの内容
              * type: フラッシュメッセージの色指定(例: info →　青)
@@ -132,27 +134,7 @@ new #[Layout('layouts.words-app')] class extends Component
          *
          * ※wordNameとwordDescriptionはwire:modelで直接プロパティの状態を反映するため、影響を受けてないように見える
          */
-        $this->selectedTags = collect();
         $this->resetValidation();
-    }
-
-    //-----------------------------------------------------
-    // タグ選択関連
-    //-----------------------------------------------------
-    # selectedTagIdsが更新されると実行　例　タグ選択モーダルを閉じる、フォームをクリアする
-    /**
-     * updated[プロパティ名]():  Livewireの機能、指定のプロパティが更新されたとき自動で実行されるメソッドを定義できる
-     */
-    public function updatedSelectedTagIds()
-    {
-        # 引数がnullまたは空なら、処理を中断する
-        if (empty($this->selectedTagIds)) {
-            $this->selectedTags = collect();
-            return;
-        }
-
-        //引数のタグidをもつタグコレクションを取得
-        $this->selectedTags = Tag::whereIn('id', $this->selectedTagIds)->get();
     }
 
     //-----------------------------------------------------

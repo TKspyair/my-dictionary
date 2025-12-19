@@ -243,3 +243,60 @@
     * > HTMLの標準機能でform要素内でtype属性が定義されていないbutton要素にtype="submit"が適用されてしまい、
     *   意図せずフォームが送信されエラーが表示されたままだった
     --}}
+
+    <!-- タグ表示ロジック -->
+    <?php
+    //======================================================================
+    // プロパティ
+    //======================================================================
+    //ユーザーのもつ全てのTagコレクション
+    public $tags;
+
+    //チェックしたタグのid
+    public $selectedTagIds = [];
+    
+    # 選択したタグのコレクション
+    #[Computed]
+    public function selectedTags()
+    {
+        /** 引数の値が空の場合の処理がない理由 
+         * whereInは空の値を渡されたときに、空のコレクションを返すため */
+        return Tag::whereIn('id', $this->selectedTagIds)->get();
+    }
+    //======================================================================
+    // 初期化
+    //======================================================================
+
+    public function mount()
+    {
+        #プロパティの宣言時には空のコレクションを入れられないので、ここで代入
+        $this->selectedTags = collect();
+        $this->loadTags();
+    }
+
+    # タグのセット、更新
+    #[On('update-tag-list')]
+    public function loadTags(): void
+    {
+        $this->tags = Auth::user()->tags()->orderBy('created_at', 'desc')->get();
+    }
+    //======================================================================
+    // メソッド
+    //======================================================================
+
+    /** 選択したタグの登録  ※createWord()やupdateWord()内に組み込む
+     * Wordモデルとリレーションを利用
+    */
+    $word->tags()->attach($this->selectedTags);
+    ?>
+
+    <!-- ビュー側 --> 
+
+    <!-- タグ一覧 -->
+    <div class="postion-absolute top-0 mt-3">
+        @foreach ($this->selectedTags as $selectedTag)
+            <span class="badge bg-secondary me-2 mb-2 p-2" wire:key="{{ $selectedTag->id }}">
+                {{ $selectedTag->tag_name }}
+            </span>
+        @endforeach
+    </div>

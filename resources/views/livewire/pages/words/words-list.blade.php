@@ -145,7 +145,7 @@ new #[Layout('layouts.words-app')] class extends Component
     // 語句詳細モーダルとの連携
     //-----------------------------------------------------
 
-    /**　sendWordInstance(Word $word)
+    /**　sendWord(Word $word)
      * - 語句リストの語句名をクリック時に実行
      * - クリックした語句名のモデルインスタンスをwords.detail-editに送信
      */
@@ -414,6 +414,7 @@ new #[Layout('layouts.words-app')] class extends Component
                     * text-overflow: ellipsis;（末尾を ... にする）
                     --}}
                     <button wire:click="sendWord({{ $word }})"
+                        x-on:click="$dispatch('open-words-detail-edit-modal')"
                         class="btn btn-link text-dark border-0 p-0 mb-0 text-truncate text-decoration-none">
                         {{ $word->word_name }}
                     </button>
@@ -433,5 +434,5 @@ new #[Layout('layouts.words-app')] class extends Component
             {{ $this->Words->links('livewire/layout/custom-pagination') }} <!-- 黄色破線はエディタのエラー -->
         </div>
     </section>
-
+    @livewire('pages.words.detail-edit')
 </article>
