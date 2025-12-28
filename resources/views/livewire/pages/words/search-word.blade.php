@@ -30,7 +30,7 @@ new #[Layout('layouts.words-app')] class extends Component
     public function sendWord(Word $word): void
     {
         $this->dispatch('send-word', word: $word)
-        ->to('pages.words.detail-edit');
+        ->to('pages.words.detail');
 
         $this->reset('search');
     }

@@ -1,12 +1,5 @@
 <?php
 
-/** TODO: タグ選択だけしてモーダルを閉じて、再度モーダルを開くときに、選択したタグが表示されたままになるのを、clearForm内で無理やり対処している
- * →　モーダル再表示時にDOMが更新されるようになっている
- * 改善案: モーダルを閉じる前に更新されるようにしたい
- * メリット: ロジックがわかりやすくなる
- * デメリット: Alpainでモーダルを閉じれなくなり、ページ遷移速度が落ちる
- */
-
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Collection;
 use App\Models\User;
@@ -17,9 +10,7 @@ use Livewire\Attributes\On;
 use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
 use Livewire\Attributes\Computed;
-
 use Gemini\Client;
-
 
 new #[Layout('layouts.words-app')] class extends Component 
 {
@@ -85,6 +76,7 @@ new #[Layout('layouts.words-app')] class extends Component
     {
         # 語句名と説明どちらも未入力なら登録処理を中断する
         if (empty($this->wordName) && empty($this->wordDescription)) {
+            
             /** 'flash-message'イベントの発火
              * ユーザーに空のメモを削除したことを早く伝えるために、最初に実行
              * message: フラッシュメッセージの内容
@@ -177,7 +169,8 @@ new #[Layout('layouts.words-app')] class extends Component
 
 
 
-<div class="container-md" x-data="{ showModal: false, tagSelectMode: false , showTooltip: true }" x-on:open-words-create-modal.window="showModal = true"
+<div class="container-md" x-data="{ showModal: false, tagSelectMode: false , showTooltip: true }" 
+    x-on:open-words-create-modal.window="showModal = true; showTooltip = true"
     x-on:close-all-modal.window="showModal = false">
 
     <!-- モーダル部 -->

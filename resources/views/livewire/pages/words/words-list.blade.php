@@ -145,13 +145,13 @@ new #[Layout('layouts.words-app')] class extends Component
     // 語句詳細モーダルとの連携
     //-----------------------------------------------------
 
-    /**　sendWord(Word $word)
+    /**　sendWordId(int $wordId)
      * - 語句リストの語句名をクリック時に実行
-     * - クリックした語句名のモデルインスタンスをwords.detail-editに送信
+     * - クリックした語句のIDをwords.detailに送信
      */
-    public function sendWord(Word $word): void
+    public function sendWordId(int $wordId): void
     {   
-        $this->dispatch('send-word', word: $word)->to('pages.words.detail-edit');
+        $this->dispatch('send-word-id', wordId: $wordId)->to('pages.words.detail');
     }
 
     //-----------------------------------------------------
@@ -413,8 +413,8 @@ new #[Layout('layouts.words-app')] class extends Component
                     * white-space: nowrap;（改行させない）
                     * text-overflow: ellipsis;（末尾を ... にする）
                     --}}
-                    <button wire:click="sendWord({{ $word }})"
-                        x-on:click="$dispatch('open-words-detail-edit-modal')"
+                    <button wire:click="sendWordId({{ $word->id }})"
+                        x-on:click="$dispatch('open-words-detail-modal')"
                         class="btn btn-link text-dark border-0 p-0 mb-0 text-truncate text-decoration-none">
                         {{ $word->word_name }}
                     </button>
@@ -434,5 +434,6 @@ new #[Layout('layouts.words-app')] class extends Component
             {{ $this->Words->links('livewire/layout/custom-pagination') }} <!-- 黄色破線はエディタのエラー -->
         </div>
     </section>
-    @livewire('pages.words.detail-edit')
+    @livewire('pages.words.detail')
+
 </article>

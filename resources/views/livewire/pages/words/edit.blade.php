@@ -84,8 +84,11 @@ new #[Layout('layouts.words-app')] class extends Component {
             */
         $this->word->tags()->sync($this->selectedTagIds);
 
+        $this->sendWordId();
+
         # Wordコレクションの更新イベントを発火
         $this->dispatch('update-words');
+
     }
 
     # 語句データの削除
@@ -102,28 +105,29 @@ new #[Layout('layouts.words-app')] class extends Component {
     }
 
     //-----------------------------------------------------
-    // イベントを受け取り、モーダルを開閉　words.words-list
+    // 詳細画面との語句データのやりとり
     //-----------------------------------------------------
-    # 語句のインスタンスを受け取り、その語句の詳細ページ(モーダル)を開く処理
-    /**
-     * - words.words-listよりイベントを受け取り、実行
-     * - 引数のモデルインスタンスをクラスプロパティに代入
-     * - モーダルを開くイベントを発火
-     */
-    #[On('send-word')]
-    public function setWord(Word $word): void
+    #[On('send-word-id')]
+    public function setWord(int $wordId): void
     {
-        # $this->wordはDBへの登録の際に使用する
-        $this->word = $word;
-        $this->wordName = $word->word_name;
-        $this->wordDescription = $word->description;
-        $this->selectedTagIds = $word->tags->pluck('id')->all();
+        $this->word = Word::findOrFail($wordId);
+        $this->wordName = $this->word->word_name;
+        $this->wordDescription = $this->word->description;
+        $this->selectedTagIds = $this->word->tags->pluck('id')->all();
     }
+
+    # 編集後に詳細画面に戻る際にidを送り、詳細画面表示時に最新の状態にする
+    public function sendWordId(): void
+    {   
+        $this->dispatch('send-word-id', wordId: $this->word->id)->to('pages.words.detail');
+    }
+
 };
 ?>
 
 
-<section class="container-md" x-data="{ showModal: false, editMode: false, tagSelectMode: false }" x-on:open-words-detail-edit-modal.window="showModal = true"
+<section class="container-md" x-data="{ showModal: false, tagSelectMode: false }" 
+    x-on:open-words-edit-modal.window="showModal = true"
     x-on:close-all-modal.window="showModal = false">
 
     <!-- モーダル本体 -->
@@ -133,88 +137,15 @@ new #[Layout('layouts.words-app')] class extends Component {
 
                 <div class="modal-content">
 
-                    <!-- 一覧と編集の切り替え部 -->
-                    <article x-show="!editMode">
+                    <!-- 編集モード -->
+                    <article>
                         <!-- ヘッダー部 -->
                         <header class="modal-header d-flex justify-content-between align-items-center p-2">
 
                             <!-- ヘッダー左側 -->
                             <div class="d-flex align-items-center">
-                                <!--戻るボタン -->
-                                <x-back-button />
-
-                                <span class="fs-5 fw-bold">詳細</span>
-                            </div>
-
-                            <!-- ヘッダー右側 -->
-                            <div class="dropdown">
-                                <!-- ドロップダウン表示ボタン -->
-                                <span data-bs-toggle="dropdown" class="me-2">
-                                    <i class="bi bi-three-dots-vertical"></i>
-                                </span>
-
-                                <!-- ドロップダウンメニュー -->
-                                <ul class="dropdown-menu p-1">
-
-                                    <!-- 編集ボタン -->
-                                    <li x-on:click="editMode = true" class="m-1">
-                                        <span><i class="bi bi-pencil me-1"></i>編集</span>
-                                    </li>
-                                    <!-- 削除ボタン -->
-                                    <li wire:click="deleteWord" wire:confirm="本当に削除しますか？" class="m-1">
-                                        <span class="text-danger"><i class="bi bi-trash me-1"></i>削除</span>
-
-                                    </li>
-                                </ul>
-                            </div>
-                        </header>
-
-                        {{-- 
-                        * bg-white: 背景を白にすることで、モーダル展開前のページの要素が透けることが防げる
-                        --}}
-                        <div class="modal-body d-flex flex-column flex-grow-1 mx-2 mb-2 bg-white">
-
-                            <!-- 詳細モード -->
-                            <div class="position-relative d-flex flex-column w-100" x-show="!editMode">
-
-                                <!-- 語句名 -->
-                                <div>
-                                    <span class="fs-5 fs-bold p-0">{{ $this->wordName }}</span>
-                                </div>
-
-                                <!-- 説明フィールド -->
-                                <div class="mt-3">
-                                    {{-- **white-space: pre-wrap**: 改行コードをそのまま出力する 
-                                    * Pタグ内での改行禁止!
-                                    * > pタグ内で改行すると、画面表示時に改行が反映されてしまう
-                                    --}}
-                                    <p class="flex-grow-1 p-0 text-break" style="white-space: pre-wrap; ">{{ $this->wordDescription }}</p>
-                                </div>
-
-                                <!-- タグ一覧 -->
-                                <div class="postion-absolute top-0 mt-3">
-                                    @foreach ($this->selectedTags as $selectedTag)
-                                        <span class="badge bg-secondary me-2 mb-2 p-2"
-                                            wire:key="{{ $selectedTag->id }}">
-                                            {{ $selectedTag->tag_name }}
-                                        </span>
-                                    @endforeach
-                                </div>
-                            </div>
-                        </div>
-                    </article>
-
-                    <!-- 編集モード -->
-                    <article x-show="editMode">
-                        <!-- ヘッダー部 -->
-                        <header class="modal-header d-flex justify-content-between align-items-center p-2"
-                            x-show="editMode">
-
-                            <!-- ヘッダー左側 -->
-                            <div class="d-flex align-items-center">
                                 <!-- 戻るボタン(編集確定ボタンの機能をもつ)-->
-                                <button type="submit" form="edit-form" x-on:click="editMode = false"
-                                    wire:click="updateWord"
+                                <button type="submit" form="edit-form" x-on:click="showModal = false"
                                     class="btn btn-link text-dark border-0 p-0 m-2">
                                     <i class="bi bi-arrow-left fs-4"></i>
                                 </button>

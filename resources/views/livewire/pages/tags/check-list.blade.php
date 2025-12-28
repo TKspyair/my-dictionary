@@ -48,12 +48,12 @@ new #[Layout('layouts.words-app')] class extends Component
 
             /** 関連ファイル 
              * words.create
-             * words.detail-edit
+             * words.detail
             */
         }
 
     //-----------------------------------------------------
-    // 語句詳細・編集機能専用(words.detail-edit)
+    // 語句詳細・編集機能専用(words.detail)
     //-----------------------------------------------------
         # 渡されたタグのidを受け取る
         #[On('send-selected-tag-ids')]
@@ -63,7 +63,7 @@ new #[Layout('layouts.words-app')] class extends Component
             $this->selectedTagIds = $selectedTagIds;
 
             /** 関連ファイル
-             * words.detail-edit 
+             * words.detail
              * words.
             */
         }
