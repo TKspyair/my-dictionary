@@ -86,6 +86,8 @@ new #[Layout('layouts.words-app')] class extends Component {
 
         $this->sendWordId();
 
+        $this->reset();
+
         # Wordコレクションの更新イベントを発火
         $this->dispatch('update-words');
 
@@ -97,11 +99,14 @@ new #[Layout('layouts.words-app')] class extends Component {
         # 現在編集中の語句をDBから削除
         Auth::user()->words()->where('id', $this->word->id)->delete();
 
+        # Wordコレクションの更新
+        $this->dispatch('update-words');
+
+        $this->reset();
+
         # 全モーダルを閉じる
         $this->dispatch('close-all-modal');
 
-        # Wordコレクションの更新
-        $this->dispatch('update-words');
     }
 
     //-----------------------------------------------------

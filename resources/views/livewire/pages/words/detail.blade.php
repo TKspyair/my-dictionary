@@ -52,6 +52,26 @@ new #[Layout('layouts.words-app')] class extends Component {
     // メソッド
     //======================================================================
 
+    # 語句データの削除
+    public function deleteWord(): void
+    {
+        # 現在表示している語句をDBから削除
+        Auth::user()->words()->where('id', $this->word->id)->delete();
+
+        /** 語句データ削除後にプロパティを初期化しないと、語句リストが正常に更新されず消去したはずのデータが残ってしまうので注意
+         * > Livewireコンポーネントはプロパティの状態をメモリに保存することで、差分更新を実現しているため、明示的にリセットしないとDBからは消えているが(404エラー)
+         * メモリ上は消えていないことになり矛盾が生じる
+        */
+        $this->reset();
+
+        # Wordコレクションの更新
+        $this->dispatch('update-words');
+
+        # 全モーダルを閉じる
+        $this->dispatch('close-all-modal');
+    }
+
+
     # 語句リストから語句のIDを受け取り、編集画面を表示する
     /**
      * - 引数のIDを元に、モデルインスタンスを取得
@@ -110,6 +130,10 @@ new #[Layout('layouts.words-app')] class extends Component {
                                     <!-- 編集ボタン -->
                                     <li wire:click="sendWordId" x-on:click="$dispatch('open-words-edit-modal')" class="m-1">
                                         <span><i class="bi bi-pencil me-1"></i>編集</span>
+                                    </li>
+
+                                    <li wire:click="deleteWord" wire:confirm="本当に削除しますか?">
+                                        <span class="text-danger"><i class="bi bi-trash me-1"></i>削除</span>
                                     </li>
                                 </ul>
                             </div>
