@@ -86,7 +86,7 @@ new #[Layout('layouts.words-app')] class extends Component {
 
         $this->sendWordId();
 
-        $this->reset();
+        $this->clearForm();
 
         # Wordコレクションの更新イベントを発火
         $this->dispatch('update-words');
@@ -107,6 +107,12 @@ new #[Layout('layouts.words-app')] class extends Component {
         # 全モーダルを閉じる
         $this->dispatch('close-all-modal');
 
+    }
+
+    # フォームをクリア
+    public function clearForm()
+    {
+        $this->reset(['wordName', 'wordDescription', 'selectedTagIds']);
     }
 
     //-----------------------------------------------------

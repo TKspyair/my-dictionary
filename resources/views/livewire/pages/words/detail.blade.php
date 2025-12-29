@@ -20,8 +20,6 @@ new #[Layout('layouts.words-app')] class extends Component {
 
     public string $wordDescription = '';
 
-    public $tags;
-
     public array $selectedTagIds = [];
 
     # 選択したタグのコレクション
@@ -31,21 +29,6 @@ new #[Layout('layouts.words-app')] class extends Component {
         /** 引数の値が空の場合の処理がない理由
          * whereInは空の値を渡されたときに、空のコレクションを返すため */
         return Tag::whereIn('id', $this->selectedTagIds)->get();
-    }
-
-    //======================================================================
-    // 初期化
-    //======================================================================
-    public function mount()
-    {
-        $this->loadTags();
-    }
-
-    // タグ一覧の更新
-    #[On('update-tag-list')]
-    public function loadTags(): void
-    {
-        $this->tags = Auth::user()->tags()->orderBy('created_at', 'desc')->get();
     }
 
     //======================================================================
@@ -71,7 +54,6 @@ new #[Layout('layouts.words-app')] class extends Component {
         $this->dispatch('close-all-modal');
     }
 
-
     # 語句リストから語句のIDを受け取り、編集画面を表示する
     /**
      * - 引数のIDを元に、モデルインスタンスを取得
@@ -89,6 +71,7 @@ new #[Layout('layouts.words-app')] class extends Component {
     public function sendWordId(): void
     {   
         $this->dispatch('send-word-id', wordId: $this->word->id)->to('pages.words.edit');
+        $this->reset();
     }
 };
 ?>
