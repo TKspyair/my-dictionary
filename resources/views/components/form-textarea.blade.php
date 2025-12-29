@@ -10,9 +10,10 @@
 <textarea {{ $attributes->merge(['class' => 'flex-grow-1 p-0 form-control']) }} placeholder="説明" style="min-height: 30vh;"
     x-data="{ resize() { setTimeout( () => { 
         $el.style.height = 'auto'; $el.style.height = $el.scrollHeight + 'px', 0 }); },
-        wordDescription: $wire.entangle('wordDescription') }"
+        wordDescription: $wire.entangle('wordDescription'),
+        selectedTagIds: $wire.entangle('selectedTagIds') }"
     x-init="resize()"
-    x-effect="wordDescription; resize()"
+    x-effect="wordDescription; selectedTagIds; resize()"
     x-on:input="resize()">
 </textarea>
 

@@ -133,6 +133,20 @@ new #[Layout('layouts.words-app')] class extends Component {
         $this->dispatch('send-word-id', wordId: $this->word->id)->to('pages.words.detail');
     }
 
+    //-----------------------------------------------------
+    // タグ選択リスト関連
+    //-----------------------------------------------------
+    //　選択されたタグに紐づく語句の取得
+    #[On('send-selected-tag-ids')]
+    public function setSelectedTadIds(int $selectedTagIds): void
+    {
+        $this->selectedTagIds = $selectedTagIds;
+    }
+
+    public function sendSelectedTagIds()
+    {
+        $this->dispatch('send-selected-tag-ids', selectedTagIds: $this->selectedTagIds);
+    }
 };
 ?>
 

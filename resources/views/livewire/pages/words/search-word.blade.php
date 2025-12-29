@@ -27,9 +27,9 @@ new #[Layout('layouts.words-app')] class extends Component
     }
 
     //リスト内の語句をクリック時に実行
-    public function sendWord(Word $word): void
+    public function sendWordId(int $wordId): void
     {
-        $this->dispatch('send-word', word: $word)
+        $this->dispatch('send-word-id', wordId: $wordId)
         ->to('pages.words.detail');
 
         $this->reset('search');
@@ -54,12 +54,15 @@ new #[Layout('layouts.words-app')] class extends Component
 
     <!-- 検索結果の表示リスト -->
     <article x-show="showWordList">
+        
         @if ($this->search && $this->words->count() > 0)
             <div class="mt-1 card position-absolute w-100 z-1">
                 <ul class="list-group list-group-flush">
                     @foreach ($this->words as $word)
                         <li wire:key="{{ $word->id }}" class="list-group-item">
-                            <a wire:click="sendWord({{ $word }})" class="text-dark text-decoration-none">
+                            <a class="text-dark text-decoration-none"
+                                wire:click="sendWordId({{ $word->id }})"
+                                x-on:click="$dispatch('open-words-detail-modal')">
                                 {{ $word->word_name }}
                             </a>
                         </li>
@@ -73,6 +76,7 @@ new #[Layout('layouts.words-app')] class extends Component
                     <p class="mb-0 text-muted">語句が見つかりません。</p>
                 </div>
             </div>
+        
         @endif
     </article>
 </section>
