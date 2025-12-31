@@ -14,9 +14,13 @@ new #[Layout('layouts.words-app')] class extends Component {
     // Property(プロパティ)
     //======================================================================
 
-    # タグ選択モーダルでタグ一覧の表示に使用する
     public $tags;
 
+    # 親コンポーネントから初期値が渡される
+    /** 親コンポーネント
+     * words.create
+     * words.edit
+    */
     public array $selectedTagIds = [];
 
     //======================================================================
@@ -38,21 +42,28 @@ new #[Layout('layouts.words-app')] class extends Component {
     // method(メソッド)
     //======================================================================
 
-    //　選択されたタグに紐づく語句の取得
-    #[On('send-selected-tag-ids')]
-    public function setSelectedTadIds(int $selectedTagIds): void
+    # tags.select-tagから最新のタグ選択状態を受け取る
+    #[On('send-tag-ids-for-select-tag')]
+    public function setSelectedTagIds(array $selectedTagIds): void
     {
         $this->selectedTagIds = $selectedTagIds;
+
+        $this->dispatch('open-tags-select-tag');
     }
 
-    public function sendSelectedTagIds()
+    public function sendSelectedTagIds(): void
     {
-        $this->dispatch('send-selected-tag-ids', selectedTagIds: $this->selectedTagIds);
+        $this->dispatch('send-tag-ids-for-parents', selectedTagIds: $this->selectedTagIds);
+
+        $this->dispatch('close-tags-select-tag');
     }
 }; ?>
 
 <!-- タグ選択モーダル -->
-<section class="container-md" x-data="{ showModal: false }" x-on:open-tag-list.window="showModal = true">
+<section class="container-md" x-data="{ showModal: false }" 
+    x-on:open-tags-select-tag.window="showModal = true"
+    x-on:close-tags-select-tag.window="showModal = false">
+
     <div x-show="showModal">
         <div class="modal d-block" tabindex="-1">
             <div class="modal-dialog modal-fullscreen">
@@ -62,7 +73,6 @@ new #[Layout('layouts.words-app')] class extends Component {
                     <header class="modal-header d-flex align-items-center p-2">
                         <!--戻るボタン-->
                         <button type="button" class="btn btn-link text-dark border-0 p-0 m-2"
-                            x-on:click="showModal = false"
                             wire:click="sendSelectedTagIds">
                             <i class="bi bi-arrow-left fs-4"></i>
                         </button>
@@ -74,12 +84,12 @@ new #[Layout('layouts.words-app')] class extends Component {
                     <div class="modal-body">
                         <!-- タグ選択リスト -->
                         @foreach ($this->tags as $tag)
-                            <div class="form-check" wire:key="{{ $tag->id }}">
+                            <div class="form-check" wire:key=" tags-select-tag-{{ $tag->id }} ">
                                 <input type="checkbox" class="form-check-input" 
-                                    name="selectedTagIds[]" value="{{ $tag->id }}" id="{{ $tag->id }}"
+                                    name="selectedTagIds[]" value="{{ $tag->id }}" id=" tags-select-tag-{{ $tag->id }} "
                                     wire:model.live="selectedTagIds">
 
-                                <label for="{{ $tag->id }}" class="form-check-label">
+                                <label for=" tags-select-tag-{{ $tag->id }} " class="form-check-label">
                                     {{ $tag->tag_name }}
                                 </label>
                             </div>

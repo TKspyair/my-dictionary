@@ -24,7 +24,7 @@ new #[Layout('layouts.words-app')] class extends Component {};
     
         <!--検索バー-->
         <div class="flex-grow-1 ms-3 me-4 p-0 ">
-            @livewire('pages.words.search-word')
+            @livewire('pages.words.search-word', key('pages.words.search-word'))
         </div>
     </header>
 
@@ -32,7 +32,7 @@ new #[Layout('layouts.words-app')] class extends Component {};
     <div>    
         <!--語句リスト-->
         <div class="m-4">
-            @livewire('pages.words.words-list')
+            @livewire('pages.words.words-list', key('pages.words.words-list'))
         </div>
 
         <!--語句登録ボタン-->
@@ -45,11 +45,22 @@ new #[Layout('layouts.words-app')] class extends Component {};
     </div>
 
     <!--以下はレイアウト関係ないコンポーネント-->
+    {{-- NOTE: メインビューにコンポーネント定義を集約する理由 
+    ** 1. 各コンポーネントを親子関係ではなく、兄弟関係にするため
+    * > 親子関係にしてしまうと、子コンポーネントに意図しないレンダリングが発生してエラーの原因になる
+    * >> コンポーネントIDのリセットによる、「Component Not Found」など ※LivewireではランダムなIDによりコンポーネントを識別する
+    * >>> もし親子関係にする場合、wire:ignoreにより意図しないレンダリングで、エラーを防ぐ
+    * 例　<div wire:ignore>コンポーネント定義</div> 
+    --}}
     
     <!-- 語句登録モーダル-->
-    @livewire('pages.words.create')
+    @livewire('pages.words.create', key('pages.words.create'))
     <!-- メニュー -->
-    @livewire('pages.menu.index')
-    <!-- テスト時のみ有効化 -->
-    <!--@ livewire('pages.test')-->
+    @livewire('pages.menu.index', key('pages.menu.index'))
+    <!-- 語句詳細画面 -->
+    @livewire('pages.words.detail', key('pages.words.detail'))
+    <!-- 語句編集画面 -->
+    @livewire('pages.words.edit', key('pages.words.edit'))
+    <!-- タグ選択画面 -->
+    @livewire('pages.tags.select-tag', key('pages.tags.select-tag'))
 </div>

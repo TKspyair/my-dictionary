@@ -93,7 +93,7 @@ new #[Layout('layouts.words-app')] class extends Component
 
             <!--タグ一覧-->
             <div class="m-0 p-0">
-                @livewire('pages.tags.index')
+                @livewire('pages.tags.index', key('pages.tags.index'))
             </div>
             <hr>
 
@@ -120,5 +120,5 @@ new #[Layout('layouts.words-app')] class extends Component
     </div>
 
     <!-- タグ設定　-->
-    @livewire('pages.tags.create')
+    @livewire('pages.tags.create', key('pages.tags.create'))
 </div>

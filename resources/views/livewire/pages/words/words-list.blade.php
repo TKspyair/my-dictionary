@@ -198,7 +198,6 @@ new #[Layout('layouts.words-app')] class extends Component
         $this->filterBeginDate = '';
         $this->filterEndDate = '';
         $this->selectedTagIds = [];
-
     }
 }; ?>
 
@@ -414,7 +413,6 @@ new #[Layout('layouts.words-app')] class extends Component
                     * text-overflow: ellipsis;（末尾を ... にする）
                     --}}
                     <button wire:click="sendWordId({{ $word->id }})"
-                        x-on:click="$dispatch('open-words-detail-modal')"
                         class="btn btn-link text-dark border-0 p-0 mb-0 text-truncate text-decoration-none">
                         {{ $word->word_name }}
                     </button>
@@ -434,6 +432,4 @@ new #[Layout('layouts.words-app')] class extends Component
             {{ $this->Words->links('livewire/layout/custom-pagination') }} <!-- 黄色破線はエディタのエラー -->
         </div>
     </section>
-    @livewire('pages.words.detail')
-
 </article>

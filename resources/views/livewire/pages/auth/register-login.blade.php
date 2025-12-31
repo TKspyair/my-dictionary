@@ -52,12 +52,12 @@ new #[Layout('layouts.words-app')] class extends Component
                     <div class="modal-body">
                         <!-- ログインページ -->
                         <div class="h-100" x-show="activeTab === 'login'">
-                            @livewire('pages.auth.login')
+                            @livewire('pages.auth.login', key('pages.auth.login'))
                         </div>
 
                         <!-- 新規登録ページ -->
                         <div class="h-100" x-show="activeTab === 'register'">
-                            @livewire('pages.auth.register')
+                            @livewire('pages.auth.register', key('pages.auth.register'))
                         </div>
                     </div>
 
