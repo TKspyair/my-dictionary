@@ -41,7 +41,6 @@ jobs:
             php artisan migrate --force
 
             # 7. キャッシュのクリアと再生成
-            # Livewire/Voltコンポーネントの変更を反映させるために重要です
             php artisan optimize:clear
 
             # サーバーの再起動
