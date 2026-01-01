@@ -107,18 +107,12 @@ new #[Layout('layouts.words-app')] class extends Component {
         $this->wordName = $this->word->word_name;
         $this->wordDescription = $this->word->description;
         $this->selectedTagIds = $this->word->tags->pluck('id')->all();
-
-        $this->dispatch('open-words-edit-modal');
-
-        $this->dispatch('close-words-detail-modal');
     }
 
     # 編集後に詳細画面に戻る際にidを送り、詳細画面表示時に最新の状態にする
     public function sendWordId(): void
     {   
         $this->dispatch('send-word-id', wordId: $this->word->id)->to('pages.words.detail');
-
-        $this->dispatch('close-words-edit-modal');
     }
 
     //-----------------------------------------------------
@@ -163,7 +157,8 @@ new #[Layout('layouts.words-app')] class extends Component {
                             <!-- ヘッダー左側 -->
                             <div class="d-flex align-items-center">
                                 <!-- 戻るボタン(編集確定ボタンの機能をもつ)-->
-                                <button type="submit" form="edit-form" class="btn btn-link text-dark border-0 p-0 m-2">
+                                <button type="submit" form="edit-form" class="btn btn-link text-dark border-0 p-0 m-2"
+                                    x-on:click="showModal = false">
                                     <i class="bi bi-arrow-left fs-4"></i>
                                 </button>
 
@@ -173,7 +168,8 @@ new #[Layout('layouts.words-app')] class extends Component {
                             <!-- ヘッダー右側 -->
                             <div>
                                 <button type="button" class="btn btn-outline-primary"
-                                    wire:click="sendSelectedTagIds">
+                                    wire:click="sendSelectedTagIds"
+                                    x-on:click="$dispatch('open-tags-select-tag')">
                                     <span>タグ選択</span>
                                 </button>
                             </div>

@@ -404,16 +404,17 @@ new #[Layout('layouts.words-app')] class extends Component
         <ul class="list-group position-relative">
             @foreach ($this->Words as $word)
                 <li class="list-group-item d-flex justify-content-between align-items-center"
-                    wire:key="{{ $word->id }}">
-                    
+                    wire:key="{{ $word->id }}"
+                    >
                     {{-- **text-truncate**: 語句名が長いとき、リストのレイアウトが崩れるのを防止
                     * 以下のクラスを内包する
                     * overflow: hidden;（はみ出た分を隠す）
                     * white-space: nowrap;（改行させない）
                     * text-overflow: ellipsis;（末尾を ... にする）
                     --}}
-                    <button wire:click="sendWordId({{ $word->id }})"
-                        class="btn btn-link text-dark border-0 p-0 mb-0 text-truncate text-decoration-none">
+                    <button class="btn btn-link text-dark border-0 p-0 mb-0 text-truncate text-decoration-none"
+                        wire:click="sendWordId({{ $word->id }})" 
+                        x-on:click="$dispatch('open-words-detail-modal')">
                         {{ $word->word_name }}
                     </button>
                 </li>

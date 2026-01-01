@@ -65,17 +65,13 @@ new #[Layout('layouts.words-app')] class extends Component {
         $this->wordName = $this->word->word_name;
         $this->wordDescription = $this->word->description;
         $this->selectedTagIds = $this->word->tags->pluck('id')->all();
-
-        # このコンポーネントのモーダルを開く
-        $this->dispatch('open-words-detail-modal');
     }
 
     # 詳細画面で表示している語句を編集画面で表示する
     public function sendWordId(): void
     {   
-        $this->dispatch('send-word-id', wordId: $this->word->id)->to('pages.words.edit');
-
-        $this->dispatch('close-words-detail-modal');
+        $this->dispatch('send-word-id', wordId: $this->word->id)
+        ->to('pages.words.edit');
     }
 };
 ?>
@@ -116,7 +112,9 @@ new #[Layout('layouts.words-app')] class extends Component {
                                 <ul class="dropdown-menu p-1">
 
                                     <!-- 編集ボタン -->
-                                    <li class="m-1" wire:click="sendWordId">
+                                    <li class="m-1" 
+                                        wire:click="sendWordId"
+                                        x-on:click="$dispatch('open-words-edit-modal')">
                                         <span><i class="bi bi-pencil me-1"></i>編集</span>
                                     </li>
 

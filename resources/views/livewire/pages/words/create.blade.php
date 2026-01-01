@@ -21,9 +21,6 @@ new #[Layout('layouts.words-app')] class extends Component
 
     public string $wordDescription = '';
 
-    //ユーザーのもつ全てのTagコレクション
-    public $tags;
-
     # 選択したタグのid
     public $selectedTagIds = [];
 
@@ -34,21 +31,6 @@ new #[Layout('layouts.words-app')] class extends Component
         /** 引数の値が空の場合の処理がない理由 
          * whereInは空の値を渡されたときに、空のコレクションを返すため */
         return Tag::whereIn('id', $this->selectedTagIds)->get();
-    }
-    //======================================================================
-    // 初期化
-    //======================================================================
-
-    public function mount()
-    {
-        $this->loadTags();
-    }
-
-    # タグのセット、更新
-    #[On('update-tag-list')]
-    public function loadTags(): void
-    {
-        $this->tags = Auth::user()->tags()->orderBy('created_at', 'desc')->get();
     }
 
     //======================================================================
@@ -130,6 +112,25 @@ new #[Layout('layouts.words-app')] class extends Component
     }
 
     //-----------------------------------------------------
+    // タグ選択関連
+    //-----------------------------------------------------
+    /** NOTE: タグ選択リストへの遷移は一時的なものなので、このモーダルを閉じる動作は不要 */
+
+    # 現在のタグ選択状態をtags.select-tagに送信する
+    public function sendSelectedTagIds()
+    {
+        $this->dispatch('send-tag-ids-for-select-tag', selectedTagIds: $this->selectedTagIds)
+            ->to('pages.tags.select-tag');
+    }
+
+    # tags.select-tagから最新のタグ選択状態を受け取る
+    #[On('send-tag-ids-for-parents')]
+    public function setSelectedTagIds(array $selectedTagIds): void
+    {
+        $this->selectedTagIds = $selectedTagIds;
+    }
+
+    //-----------------------------------------------------
     // Gemini関連
     //-----------------------------------------------------
     #　geminiで語句の説明を自動生成する
@@ -204,7 +205,9 @@ new #[Layout('layouts.words-app')] class extends Component
                         <!-- ヘッダー右側 -->
                         <div>
                             <!-- タグ選択ボタン -->
-                            <button type="button" class="btn btn-outline-primary" x-on:click="tagSelectMode = true">
+                            <button type="button" class="btn btn-outline-primary" 
+                                x-on:click="$dispatch('open-tags-select-tag')"
+                                wire:click="sendSelectedTagIds">
                                 <span>タグ選択</span>
                             </button>
                         </div>
@@ -245,7 +248,7 @@ new #[Layout('layouts.words-app')] class extends Component
                             <!-- タグ一覧 -->
                             <div class="postion-absolute top-0 mt-3">
                                 @foreach ($this->selectedTags as $selectedTag)
-                                    <span class="badge bg-secondary me-2 mb-2 p-2" wire:key="{{ $selectedTag->id }}">
+                                    <span class="badge bg-secondary me-2 mb-2 p-2" wire:key=" words-create-{{ $selectedTag->id }}">
                                         {{ $selectedTag->tag_name }}
                                     </span>
                                 @endforeach
@@ -256,42 +259,4 @@ new #[Layout('layouts.words-app')] class extends Component
             </div>
         </div>
     </section>
-
-    <!-- タグ選択モーダル -->
-    <section x-show="tagSelectMode">
-        <div class="modal d-block" tabindex="-1">
-            <div class="modal-dialog modal-fullscreen">
-                <div class="modal-content">
-
-                    <!-- ヘッダー部 -->
-                    <header class="modal-header d-flex align-items-center p-2">
-                        <!--戻るボタン-->
-                        <button type="button" class="btn btn-link text-dark border-0 p-0 m-2"
-                            x-on:click="tagSelectMode = false">
-                            <i class="bi bi-arrow-left fs-4"></i>
-                        </button>
-
-                        <h5 class="modal-title mb-0">タグ</h5>
-                    </header>
-
-                    <!-- ボディ部 -->
-                    <div class="modal-body">
-                        <!-- タグ選択リスト -->
-                        @foreach ($this->tags as $tag)
-                            <div class="form-check" wire:key="{{ $tag->id }}">
-                                <!-- 選択したタグのidをselectedTagIdsに格納する -->
-                                <!-- value属性で選択したタグのidを値とし、wire:model.liveでselectedTagIdsに即時同期する -->
-                                <input type="checkbox" wire:model.live="selectedTagIds" name="selectedTagIds[]"
-                                    value="{{ $tag->id }}" id="{{ $tag->id }}" class="form-check-input">
-
-                                <label for="{{ $tag->id }}" class="form-check-label">
-                                    {{ $tag->tag_name }}
-                                </label>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-            </div>
-    </section>
-
 </div>

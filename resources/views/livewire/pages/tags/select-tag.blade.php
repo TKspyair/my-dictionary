@@ -47,15 +47,11 @@ new #[Layout('layouts.words-app')] class extends Component {
     public function setSelectedTagIds(array $selectedTagIds): void
     {
         $this->selectedTagIds = $selectedTagIds;
-
-        $this->dispatch('open-tags-select-tag');
     }
 
     public function sendSelectedTagIds(): void
     {
         $this->dispatch('send-tag-ids-for-parents', selectedTagIds: $this->selectedTagIds);
-
-        $this->dispatch('close-tags-select-tag');
     }
 }; ?>
 
@@ -73,7 +69,8 @@ new #[Layout('layouts.words-app')] class extends Component {
                     <header class="modal-header d-flex align-items-center p-2">
                         <!--戻るボタン-->
                         <button type="button" class="btn btn-link text-dark border-0 p-0 m-2"
-                            wire:click="sendSelectedTagIds">
+                            wire:click="sendSelectedTagIds"
+                            x-on:click="showModal = false">
                             <i class="bi bi-arrow-left fs-4"></i>
                         </button>
 
