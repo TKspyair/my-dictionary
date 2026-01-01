@@ -21,8 +21,7 @@ jobs:
           port: 22
           script: |
             # 1. プロジェクトのディレクトリに移動
-            # 【重要】ご自身の環境のパスに書き換えてください
-            cd /var/www/html/your-app-path
+            cd /var/www/my-dictionary
 
             # 2. メンテナンスモード開始（ユーザーにエラー画面を見せないため）
             php artisan down
