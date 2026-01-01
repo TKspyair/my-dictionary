@@ -1,0 +1,55 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches:
+      - main  # mainブランチにプッシュされた時だけ実行
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
+          script: |
+            # 1. プロジェクトのディレクトリに移動
+            # 【重要】ご自身の環境のパスに書き換えてください
+            cd /var/www/html/your-app-path
+
+            # 2. メンテナンスモード開始（ユーザーにエラー画面を見せないため）
+            php artisan down
+
+            # 3. Gitから最新コードを取得
+            git pull origin main
+
+            # 4. PHP依存関係のインストール
+            composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
+
+            # 5. フロントエンドのビルド (Vite/Bootstrap)
+            # 「npm ci」でローカル環境と同じ環境を再現する ※npm installだと常に最新状態に更新されてしまう
+            npm ci 
+            npm run build
+
+            # 6. データベースのマイグレーション
+            php artisan migrate --force
+
+            # 7. キャッシュのクリアと再生成
+            # Livewire/Voltコンポーネントの変更を反映させるために重要です
+            php artisan optimize:clear
+
+            # サーバーの再起動
+            sudo systemctl restart nginx
+            sudo systemctl restart php-fpm
+
+            # 9. メンテナンスモード解除
+            php artisan up
+            
+            echo "Deployment finished successfully!"
